@@ -4,32 +4,38 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Moyasar Payment — Secure Saudi Checkout</title>
-  <meta name="description" content="Secure Saudi payment powered by Moyasar. Pay with Credit Card or Mada." />
+  <meta name="description" content="Secure Saudi payment powered by Moyasar. Pay with Credit Card or STC Pay." />
+
+  <!-- Moyasar SDK -->
+  <link rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.14.0/moyasar.css" />
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
   <style>
     /* ─── TOKENS ─────────────────────────────────────────────────────── */
     :root {
-      --bg:          #040810;
-      --panel:       rgba(10,18,42,0.9);
-      --card:        rgba(255,255,255,0.04);
-      --border:      rgba(255,255,255,0.09);
-      --border-act:  rgba(99,179,237,0.55);
-      --gold-1:      #f6c866;
-      --gold-2:      #e8a838;
-      --green:       #22c55e;
-      --coral:       #ff6b6b;
-      --blue:        #3b82f6;
-      --txt:         #f0f4ff;
-      --txt2:        #94a3b8;
-      --txt3:        #475569;
-      --r-panel:     22px;
-      --r-input:     12px;
-      --r-btn:       14px;
-      --transition:  all .25s cubic-bezier(.4,0,.2,1);
-      --heading:     'Outfit', sans-serif;
-      --body:        'Inter', sans-serif;
+      --bg:         #040810;
+      --panel:      rgba(10,18,42,0.92);
+      --card-bg:    rgba(255,255,255,0.04);
+      --border:     rgba(255,255,255,0.09);
+      --border-act: rgba(99,179,237,0.55);
+      --gold-1:     #f6c866;
+      --gold-2:     #e8a838;
+      --green:      #22c55e;
+      --coral:      #ff6b6b;
+      --blue:       #3b82f6;
+      --txt:        #f0f4ff;
+      --txt2:       #94a3b8;
+      --txt3:       #475569;
+      --r-panel:    22px;
+      --r-input:    12px;
+      --r-btn:      14px;
+      --ease:       all .25s cubic-bezier(.4,0,.2,1);
+      --heading:    'Outfit', sans-serif;
+      --body:       'Inter', sans-serif;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -41,7 +47,7 @@
       overflow-x: hidden;
     }
 
-    /* ─── BACKGROUND ─────────────────────────────────────────────────── */
+    /* ─── ANIMATED BACKGROUND ────────────────────────────────────────── */
     .bg {
       position: fixed; inset: 0; z-index: 0; overflow: hidden;
       background:
@@ -49,287 +55,220 @@
         radial-gradient(ellipse 60% 50% at 80% 80%, rgba(99,32,140,.11) 0%, transparent 60%),
         linear-gradient(180deg, #040810 0%, #060c1c 100%);
     }
-    .orb {
-      position: absolute; border-radius: 50%;
-      filter: blur(80px); opacity: .5;
-      animation: floatOrb 8s ease-in-out infinite alternate;
-    }
-    .orb-1 { width:500px; height:500px; top:-10%; left:-10%;
-      background: radial-gradient(circle, rgba(59,130,246,.25), transparent); }
-    .orb-2 { width:400px; height:400px; bottom:-5%; right:-5%;
-      background: radial-gradient(circle, rgba(139,92,246,.2), transparent); animation-delay:-3s; }
-    .orb-3 { width:300px; height:300px; top:40%; left:50%;
-      background: radial-gradient(circle, rgba(246,200,102,.08), transparent); animation-delay:-5s; }
+    .orb { position:absolute; border-radius:50%; filter:blur(80px); opacity:.5; animation:floatOrb 8s ease-in-out infinite alternate; }
+    .orb-1 { width:500px;height:500px;top:-10%;left:-10%; background:radial-gradient(circle,rgba(59,130,246,.25),transparent); }
+    .orb-2 { width:400px;height:400px;bottom:-5%;right:-5%; background:radial-gradient(circle,rgba(139,92,246,.2),transparent); animation-delay:-3s; }
+    .orb-3 { width:300px;height:300px;top:40%;left:50%; background:radial-gradient(circle,rgba(246,200,102,.08),transparent); animation-delay:-5s; }
     .bg::after {
       content:''; position:absolute; inset:0;
-      background-image:
-        linear-gradient(rgba(255,255,255,.014) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.014) 1px, transparent 1px);
-      background-size: 60px 60px;
+      background-image: linear-gradient(rgba(255,255,255,.014) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.014) 1px,transparent 1px);
+      background-size:60px 60px;
     }
-    @keyframes floatOrb {
-      from { transform: scale(1) translate(0,0); }
-      to   { transform: scale(1.2) translate(20px,-20px); }
-    }
+    @keyframes floatOrb { from{transform:scale(1) translate(0,0)} to{transform:scale(1.2) translate(20px,-20px)} }
 
     /* ─── LAYOUT ─────────────────────────────────────────────────────── */
     .wrap {
-      position: relative; z-index: 1;
-      min-height: 100vh;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 24px 16px;
+      position:relative; z-index:1;
+      min-height:100vh; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; padding:24px 16px;
     }
 
     /* ─── BADGE ──────────────────────────────────────────────────────── */
     .badge {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: rgba(255,255,255,.05);
-      border: 1px solid var(--border);
-      border-radius: 50px; padding: 8px 20px;
-      margin-bottom: 28px;
-      font-family: var(--heading); font-size: 12px; font-weight: 500;
-      color: var(--txt2); letter-spacing: .08em; text-transform: uppercase;
-      backdrop-filter: blur(10px);
-      animation: slideDown .6s ease both;
+      display:inline-flex; align-items:center; gap:10px;
+      background:rgba(255,255,255,.05); border:1px solid var(--border);
+      border-radius:50px; padding:8px 20px; margin-bottom:28px;
+      font-family:var(--heading); font-size:12px; font-weight:500;
+      color:var(--txt2); letter-spacing:.08em; text-transform:uppercase;
+      backdrop-filter:blur(10px); animation:slideDown .6s ease both;
     }
-    .dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 10px var(--green);
-      animation: pulse 2s ease infinite;
-    }
+    .dot { width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s ease infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-    /* ─── CARD ───────────────────────────────────────────────────────── */
+    /* ─── MAIN CARD ──────────────────────────────────────────────────── */
     .card {
-      width: 100%; max-width: 460px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--r-panel);
-      box-shadow: 0 32px 80px rgba(0,0,0,.6), 0 8px 24px rgba(0,0,0,.4),
-                  0 0 60px rgba(99,179,237,.07);
-      backdrop-filter: blur(30px);
-      overflow: hidden;
-      animation: slideUp .7s ease .1s both;
+      width:100%; max-width:480px;
+      background:var(--panel); border:1px solid var(--border);
+      border-radius:var(--r-panel);
+      box-shadow:0 32px 80px rgba(0,0,0,.6),0 8px 24px rgba(0,0,0,.4),0 0 60px rgba(99,179,237,.07);
+      backdrop-filter:blur(30px); overflow:hidden;
+      animation:slideUp .7s ease .1s both;
     }
-    .card::before {
-      content: ''; display: block; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--gold-2) 30%, var(--gold-1) 70%, transparent);
-    }
-    .card-body { padding: 32px; }
+    .card::before { content:''; display:block; height:2px; background:linear-gradient(90deg,transparent,var(--gold-2) 30%,var(--gold-1) 70%,transparent); }
+    .card-body { padding:32px; }
 
     /* ─── ORDER HEADER ───────────────────────────────────────────────── */
-    .order-head {
-      display: flex; align-items: flex-start;
-      justify-content: space-between; margin-bottom: 24px;
-    }
-    .order-title { font-family: var(--heading); font-size: 21px; font-weight: 700; }
-    .order-title span {
-      display: block; font-size: 13px; font-weight: 400;
-      color: var(--txt2); margin-top: 3px;
-    }
-    .sar-badge {
-      background: linear-gradient(135deg, var(--gold-2), var(--gold-1));
-      color: #1a0800; font-family: var(--heading);
-      font-weight: 800; font-size: 12px;
-      padding: 6px 12px; border-radius: 8px; letter-spacing: .05em;
-    }
+    .order-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:22px; }
+    .order-title { font-family:var(--heading); font-size:21px; font-weight:700; }
+    .order-title span { display:block; font-size:13px; font-weight:400; color:var(--txt2); margin-top:3px; }
+    .sar-badge { background:linear-gradient(135deg,var(--gold-2),var(--gold-1)); color:#1a0800; font-family:var(--heading); font-weight:800; font-size:12px; padding:6px 12px; border-radius:8px; letter-spacing:.05em; }
 
-    /* ─── PRODUCT ROW ────────────────────────────────────────────────── */
-    .product {
-      display: flex; align-items: center; gap: 14px;
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 14px; padding: 14px; margin-bottom: 20px;
-    }
-    .product-icon {
-      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
-      background: linear-gradient(135deg,rgba(59,130,246,.3),rgba(139,92,246,.3));
-      display: flex; align-items: center; justify-content: center; font-size: 20px;
-    }
-    .product-name { font-family: var(--heading); font-weight: 600; font-size: 14px; }
-    .product-desc { font-size: 12px; color: var(--txt2); margin-top: 2px; }
-    .product-price {
-      margin-left: auto; font-family: var(--heading); font-weight: 700; font-size: 17px;
-      background: linear-gradient(135deg, var(--gold-2), var(--gold-1));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
+    /* ─── PRODUCT ────────────────────────────────────────────────────── */
+    .product { display:flex; align-items:center; gap:14px; background:var(--card-bg); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:20px; }
+    .product-icon { width:42px;height:42px;border-radius:10px;flex-shrink:0; background:linear-gradient(135deg,rgba(59,130,246,.3),rgba(139,92,246,.3)); display:flex;align-items:center;justify-content:center;font-size:20px; }
+    .product-name { font-family:var(--heading); font-weight:600; font-size:14px; }
+    .product-desc { font-size:12px; color:var(--txt2); margin-top:2px; }
+    .product-price { margin-left:auto; font-family:var(--heading); font-weight:700; font-size:17px; background:linear-gradient(135deg,var(--gold-2),var(--gold-1)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
 
     /* ─── DIVIDER ────────────────────────────────────────────────────── */
-    .divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border), transparent);
-      margin: 20px 0;
-    }
+    .divider { height:1px; background:linear-gradient(90deg,transparent,var(--border),transparent); margin:20px 0; }
 
     /* ─── SECTION LABEL ──────────────────────────────────────────────── */
-    .label {
-      font-size: 10px; font-weight: 700; letter-spacing: .12em;
-      text-transform: uppercase; color: var(--txt3); margin-bottom: 12px;
+    .lbl { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--txt3); margin-bottom:12px; }
+
+    /* ─── PAYER FIELDS ───────────────────────────────────────────────── */
+    .row { display:flex; gap:10px; margin-bottom:0; }
+    .fg  { flex:1; display:flex; flex-direction:column; gap:5px; }
+    .fg label { font-size:12px; font-weight:500; color:var(--txt2); }
+    .fg input {
+      background:rgba(255,255,255,.05); border:1px solid var(--border);
+      border-radius:var(--r-input); color:var(--txt);
+      font-family:var(--body); font-size:14px;
+      padding:11px 13px; outline:none; transition:var(--ease); width:100%;
+    }
+    .fg input::placeholder { color:var(--txt3); }
+    .fg input:focus { border-color:var(--border-act); background:rgba(99,179,237,.05); box-shadow:0 0 0 3px rgba(99,179,237,.08); }
+
+    /* ─── MOYASAR FORM OVERRIDES (dark theme) ────────────────────────── */
+    #moyasar-form-container { margin-top: 4px; }
+
+    /* Wrapper and inputs */
+    #moyasar-form-container .mysr-form { background: transparent !important; }
+    #moyasar-form-container .mysr-field-wrap,
+    #moyasar-form-container .mysr-form-group { background: transparent !important; }
+
+    #moyasar-form-container input,
+    #moyasar-form-container select {
+      background: rgba(255,255,255,.05) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--r-input) !important;
+      color: var(--txt) !important;
+      font-family: var(--body) !important;
+      font-size: 14px !important;
+    }
+    #moyasar-form-container input:focus,
+    #moyasar-form-container select:focus {
+      border-color: var(--border-act) !important;
+      box-shadow: 0 0 0 3px rgba(99,179,237,.08) !important;
+      outline: none !important;
+    }
+    #moyasar-form-container input::placeholder { color: var(--txt3) !important; }
+
+    /* Labels */
+    #moyasar-form-container label,
+    #moyasar-form-container .mysr-form-label {
+      color: var(--txt2) !important;
+      font-family: var(--body) !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
     }
 
-    /* ─── FIELD GRID ─────────────────────────────────────────────────── */
-    .row  { display: flex; gap: 10px; margin-bottom: 10px; }
-    .fg   { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-    .fg label { font-size: 12px; font-weight: 500; color: var(--txt2); }
-    .fg input, .fg select {
-      background: rgba(255,255,255,.05);
-      border: 1px solid var(--border);
-      border-radius: var(--r-input);
-      color: var(--txt); font-family: var(--body); font-size: 14px;
-      padding: 11px 13px; outline: none;
-      transition: var(--transition); width: 100%;
-      appearance: none;
+    /* Method selector tabs */
+    #moyasar-form-container .mysr-payment-methods { border: none !important; background: transparent !important; }
+    #moyasar-form-container .mysr-payment-method-btn {
+      background: var(--card-bg) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 10px !important;
+      color: var(--txt2) !important;
+      font-family: var(--body) !important;
+      transition: var(--ease) !important;
     }
-    .fg input::placeholder { color: var(--txt3); }
-    .fg input:focus, .fg select:focus {
-      border-color: var(--border-act);
-      background: rgba(99,179,237,.05);
-      box-shadow: 0 0 0 3px rgba(99,179,237,.08);
-    }
-    .fg input.error { border-color: rgba(255,107,107,.6) !important; }
-
-    /* Card number with icon */
-    .card-input-wrap { position: relative; }
-    .card-input-wrap input { padding-right: 48px; letter-spacing: .06em; }
-    .card-icon {
-      position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
-      font-size: 18px; pointer-events: none; transition: var(--transition);
+    #moyasar-form-container .mysr-payment-method-btn.active,
+    #moyasar-form-container .mysr-payment-method-btn:hover {
+      border-color: var(--border-act) !important;
+      background: rgba(99,179,237,.08) !important;
+      color: var(--txt) !important;
     }
 
-    /* ─── METHOD TABS ────────────────────────────────────────────────── */
-    .methods { display: flex; gap: 8px; margin-bottom: 16px; }
-    .method-tab {
-      flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 10px; padding: 10px; cursor: pointer;
-      font-size: 12px; font-weight: 600; color: var(--txt2);
-      transition: var(--transition); user-select: none;
+    /* Pay button */
+    #moyasar-form-container .mysr-btn,
+    #moyasar-form-container button[type="submit"] {
+      background: linear-gradient(135deg, var(--gold-2), var(--gold-1)) !important;
+      color: #1a0800 !important;
+      font-family: var(--heading) !important;
+      font-weight: 800 !important;
+      font-size: 16px !important;
+      border-radius: var(--r-btn) !important;
+      border: none !important;
+      padding: 15px !important;
+      cursor: pointer !important;
+      transition: var(--ease) !important;
+      letter-spacing: .02em !important;
+      width: 100% !important;
+      margin-top: 8px !important;
     }
-    .method-tab:hover { background: rgba(255,255,255,.07); color: var(--txt); }
-    .method-tab.active {
-      border-color: var(--border-act);
-      background: rgba(99,179,237,.08);
-      color: var(--txt);
-      box-shadow: 0 0 0 3px rgba(99,179,237,.08);
+    #moyasar-form-container .mysr-btn:hover,
+    #moyasar-form-container button[type="submit"]:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 8px 30px rgba(232,168,56,.45) !important;
     }
-    .method-tab svg { flex-shrink: 0; }
 
-    /* ─── PAY BUTTON ─────────────────────────────────────────────────── */
-    #pay-btn {
-      width: 100%; margin-top: 16px;
-      background: linear-gradient(135deg, var(--gold-2), var(--gold-1));
-      color: #1a0800; font-family: var(--heading);
-      font-weight: 800; font-size: 16px;
-      border: none; border-radius: var(--r-btn);
-      padding: 15px; cursor: pointer;
-      transition: var(--transition); letter-spacing: .02em;
-      position: relative; overflow: hidden;
+    /* Error messages */
+    #moyasar-form-container .mysr-error,
+    #moyasar-form-container .mysr-field-error {
+      color: var(--coral) !important;
+      font-size: 11px !important;
     }
-    #pay-btn::after {
-      content: ''; position: absolute; inset: 0;
-      background: rgba(255,255,255,0);
-      transition: var(--transition);
+
+    /* ─── METHODS STRIP ──────────────────────────────────────────────── */
+    .methods-strip {
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      margin-top:18px;
     }
-    #pay-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,168,56,.45); }
-    #pay-btn:hover::after { background: rgba(255,255,255,.08); }
-    #pay-btn:active { transform: translateY(0); }
-    #pay-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .method-pill {
+      display:flex; align-items:center; gap:6px;
+      background:var(--card-bg); border:1px solid var(--border);
+      border-radius:8px; padding:7px 12px;
+      font-size:11px; color:var(--txt2); font-weight:500;
+    }
 
     /* ─── SECURITY BAR ───────────────────────────────────────────────── */
     .sec-bar {
-      display: flex; align-items: center; justify-content: center; gap: 7px;
-      margin-top: 18px; padding-top: 16px;
-      border-top: 1px solid var(--border);
-      font-size: 11px; color: var(--txt3);
+      display:flex; align-items:center; justify-content:center; gap:7px;
+      margin-top:18px; padding-top:16px;
+      border-top:1px solid var(--border);
+      font-size:11px; color:var(--txt3);
     }
-    .sec-bar svg { color: var(--green); flex-shrink: 0; }
+    .sec-bar svg { color:var(--green); flex-shrink:0; }
 
-    /* ─── ERROR MSG ──────────────────────────────────────────────────── */
-    .err-msg {
-      font-size: 11px; color: var(--coral); margin-top: 3px; display: none;
-    }
-    .err-msg.show { display: block; }
-
-    /* ─── OVERLAY ────────────────────────────────────────────────────── */
+    /* ─── STATUS OVERLAY ─────────────────────────────────────────────── */
     #overlay {
-      display: none; position: fixed; inset: 0; z-index: 100;
-      background: rgba(4,8,16,.92); backdrop-filter: blur(20px);
-      align-items: center; justify-content: center;
+      display:none; position:fixed; inset:0; z-index:100;
+      background:rgba(4,8,16,.92); backdrop-filter:blur(20px);
+      align-items:center; justify-content:center;
     }
-    #overlay.show { display: flex; }
-
-    .status-box {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 24px; padding: 44px 36px;
-      text-align: center; max-width: 380px; width: 90%;
-      animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+    #overlay.show { display:flex; }
+    .s-box {
+      background:var(--panel); border:1px solid var(--border); border-radius:24px;
+      padding:44px 36px; text-align:center; max-width:380px; width:90%;
+      animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;
     }
-    @keyframes popIn {
-      from { transform: scale(.7); opacity: 0; }
-      to   { transform: scale(1);  opacity: 1; }
-    }
-    .s-icon { font-size: 52px; margin-bottom: 18px; }
-    .s-title { font-family: var(--heading); font-size: 24px; font-weight: 800; margin-bottom: 10px; }
-    .s-title.ok  { color: var(--green); }
-    .s-title.err { color: var(--coral); }
-    .s-desc { font-size: 14px; color: var(--txt2); line-height: 1.6; margin-bottom: 24px; }
-    .s-id {
-      font-family: monospace; font-size: 11px; color: var(--txt3);
-      background: rgba(255,255,255,.04); border: 1px solid var(--border);
-      border-radius: 8px; padding: 8px 12px; margin-bottom: 22px;
-      word-break: break-all;
-    }
-    .s-back {
-      display: block; width: 100%;
-      background: rgba(255,255,255,.08); border: 1px solid var(--border);
-      border-radius: var(--r-btn); color: var(--txt);
-      font-family: var(--heading); font-weight: 600; font-size: 15px;
-      padding: 13px; cursor: pointer; text-decoration: none;
-      transition: var(--transition);
-    }
-    .s-back:hover { background: rgba(255,255,255,.13); transform: translateY(-1px); }
-
-    /* Loader */
-    .loader {
-      width: 44px; height: 44px; border-radius: 50%;
-      border: 3px solid rgba(255,255,255,.1); border-top-color: var(--gold-1);
-      animation: spin .8s linear infinite; margin: 0 auto 18px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes popIn { from{transform:scale(.7);opacity:0} to{transform:scale(1);opacity:1} }
+    .s-icon { font-size:52px; margin-bottom:18px; }
+    .s-title { font-family:var(--heading); font-size:24px; font-weight:800; margin-bottom:10px; }
+    .s-title.ok  { color:var(--green); }
+    .s-title.err { color:var(--coral); }
+    .s-desc { font-size:14px; color:var(--txt2); line-height:1.6; margin-bottom:24px; }
+    .s-id { font-family:monospace; font-size:11px; color:var(--txt3); background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:8px; padding:8px 12px; margin-bottom:22px; word-break:break-all; }
+    .s-back { display:block; width:100%; background:rgba(255,255,255,.08); border:1px solid var(--border); border-radius:var(--r-btn); color:var(--txt); font-family:var(--heading); font-weight:600; font-size:15px; padding:13px; cursor:pointer; text-decoration:none; transition:var(--ease); }
+    .s-back:hover { background:rgba(255,255,255,.13); transform:translateY(-1px); }
+    .loader { width:44px; height:44px; border-radius:50%; border:3px solid rgba(255,255,255,.1); border-top-color:var(--gold-1); animation:spin .8s linear infinite; margin:0 auto 18px; }
+    @keyframes spin { to{transform:rotate(360deg)} }
 
     /* ─── HISTORY ────────────────────────────────────────────────────── */
-    .hist-wrap { width: 100%; max-width: 460px; margin-top: 16px; animation: slideUp .8s ease .3s both; }
-    .hist-btn {
-      width: 100%; background: rgba(255,255,255,.03);
-      border: 1px solid var(--border); border-radius: 12px;
-      color: var(--txt2); font-family: var(--body); font-size: 13px;
-      padding: 11px 16px; cursor: pointer;
-      display: flex; align-items: center; justify-content: space-between;
-      transition: var(--transition);
-    }
-    .hist-btn:hover { background: rgba(255,255,255,.06); color: var(--txt); }
-    .hist-list {
-      display: none; margin-top: 10px; max-height: 260px; overflow-y: auto;
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 14px; padding: 6px;
-    }
-    .hist-list.open { display: block; }
-    .hist-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 11px 12px; border-radius: 9px; transition: var(--transition);
-    }
-    .hist-item:hover { background: rgba(255,255,255,.04); }
-    .hist-item + .hist-item { border-top: 1px solid var(--border); }
-    .hi-left { flex: 1; min-width: 0; }
-    .hi-desc { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .hi-date { font-size: 11px; color: var(--txt3); margin-top: 2px; }
-    .hi-amt  { font-family: var(--heading); font-weight: 700; font-size: 13px; color: var(--gold-1); margin: 0 10px; }
-    .pill {
-      display: inline-block; font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .07em;
-      padding: 3px 7px; border-radius: 5px;
-    }
+    .hist-wrap { width:100%; max-width:480px; margin-top:16px; animation:slideUp .8s ease .3s both; }
+    .hist-btn { width:100%; background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:12px; color:var(--txt2); font-family:var(--body); font-size:13px; padding:11px 16px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:var(--ease); }
+    .hist-btn:hover { background:rgba(255,255,255,.06); color:var(--txt); }
+    .hist-list { display:none; margin-top:10px; max-height:260px; overflow-y:auto; background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:6px; }
+    .hist-list.open { display:block; }
+    .hist-item { display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:9px; transition:var(--ease); }
+    .hist-item:hover { background:rgba(255,255,255,.04); }
+    .hist-item + .hist-item { border-top:1px solid var(--border); }
+    .hi-left { flex:1; min-width:0; }
+    .hi-desc { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hi-date { font-size:11px; color:var(--txt3); margin-top:2px; }
+    .hi-amt  { font-family:var(--heading); font-weight:700; font-size:13px; color:var(--gold-1); margin:0 10px; }
+    .pill { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; padding:3px 7px; border-radius:5px; }
     .pill-paid       { background:rgba(34,197,94,.15);   color:var(--green); }
     .pill-failed     { background:rgba(255,107,107,.15); color:var(--coral); }
     .pill-initiated  { background:rgba(59,130,246,.15);  color:var(--blue); }
@@ -339,11 +278,7 @@
     @keyframes slideUp   { from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1} }
     @keyframes slideDown { from{transform:translateY(-12px);opacity:0} to{transform:translateY(0);opacity:1} }
 
-    /* ─── RESPONSIVE ─────────────────────────────────────────────────── */
-    @media (max-width: 500px) {
-      .card-body { padding: 22px; }
-      .row { flex-direction: column; }
-    }
+    @media (max-width:500px) { .card-body{padding:22px;} .row{flex-direction:column;} }
   </style>
 </head>
 <body>
@@ -357,23 +292,21 @@
 
 <!-- Status Overlay -->
 <div id="overlay" role="dialog" aria-modal="true" aria-labelledby="s-title">
-  <div class="status-box" id="status-box"></div>
+  <div class="s-box" id="s-box"></div>
 </div>
 
 <!-- Main -->
 <div class="wrap" id="main">
 
-  <!-- Badge -->
   <div class="badge">
     <div class="dot" aria-hidden="true"></div>
-    Secure Checkout · Saudi Arabia
+    Secure Checkout · Saudi Arabia · Test Mode
   </div>
 
-  <!-- Checkout Card -->
   <section class="card" aria-label="Payment checkout">
     <div class="card-body">
 
-      <!-- Order header -->
+      <!-- Header -->
       <div class="order-head">
         <div class="order-title">
           Complete Order
@@ -394,9 +327,9 @@
 
       <div class="divider"></div>
 
-      <!-- Payer details -->
-      <div class="label">Your Details</div>
-      <div class="row">
+      <!-- Payer Details -->
+      <div class="lbl">Your Details</div>
+      <div class="row" style="margin-bottom:12px">
         <div class="fg">
           <label for="f-name">Full Name</label>
           <input id="f-name" type="text" placeholder="Ahmed Al-Rashidi" autocomplete="name" />
@@ -409,66 +342,27 @@
 
       <div class="divider"></div>
 
-      <!-- Payment method tabs -->
-      <div class="label">Payment Method</div>
-      <div class="methods" role="tablist" aria-label="Payment methods">
-        <button class="method-tab active" id="tab-card" role="tab" aria-selected="true" data-method="creditcard">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <!-- Moyasar Payment Form — SDK renders card fields here -->
+      <div class="lbl">Payment Details</div>
+      <div id="moyasar-form-container">
+        <div id="moyasar-payment-form"></div>
+      </div>
+
+      <!-- Accepted methods -->
+      <div class="methods-strip" aria-label="Accepted payment methods">
+        <div class="method-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
           Credit Card
-        </button>
-        <button class="method-tab" id="tab-mada" role="tab" aria-selected="false" data-method="mada">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-          Mada
-        </button>
-        <button class="method-tab" id="tab-stc" role="tab" aria-selected="false" data-method="stcpay">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="method-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           STC Pay
-        </button>
-      </div>
-
-      <!-- Card Fields -->
-      <div id="card-fields">
-        <div class="label">Card Details</div>
-        <div class="fg" style="margin-bottom:10px">
-          <label for="f-cardnum">Card Number</label>
-          <div class="card-input-wrap">
-            <input id="f-cardnum" type="text" placeholder="1234 5678 9012 3456"
-              maxlength="19" autocomplete="cc-number" inputmode="numeric" />
-            <span class="card-icon" id="card-brand-icon">💳</span>
-          </div>
-          <span class="err-msg" id="err-card">Please enter a valid 16-digit card number.</span>
         </div>
-        <div class="row">
-          <div class="fg">
-            <label for="f-exp">Expiry</label>
-            <input id="f-exp" type="text" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp" inputmode="numeric" />
-            <span class="err-msg" id="err-exp">Invalid expiry date.</span>
-          </div>
-          <div class="fg">
-            <label for="f-cvv">CVV</label>
-            <input id="f-cvv" type="password" placeholder="•••" maxlength="4" autocomplete="cc-csc" inputmode="numeric" />
-            <span class="err-msg" id="err-cvv">Invalid CVV.</span>
-          </div>
-          <div class="fg">
-            <label for="f-cname">Name on Card</label>
-            <input id="f-cname" type="text" placeholder="AHMED AL-RASHIDI" autocomplete="cc-name" />
-          </div>
+        <div class="method-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Mada
         </div>
       </div>
-
-      <!-- STC / Mada placeholder -->
-      <div id="alt-fields" style="display:none">
-        <div class="label">Mobile Number</div>
-        <div class="fg" style="margin-bottom:10px">
-          <label for="f-mobile">Saudi Mobile Number</label>
-          <input id="f-mobile" type="tel" placeholder="+966 5X XXX XXXX" maxlength="14" inputmode="tel" />
-        </div>
-      </div>
-
-      <!-- Pay button -->
-      <button id="pay-btn" type="button" aria-label="Pay 100.00 SAR">
-        🔒 Pay 100.00 SAR
-      </button>
 
       <!-- Security bar -->
       <div class="sec-bar" role="contentinfo">
@@ -478,10 +372,10 @@
         256-bit SSL · Powered by Moyasar · PCI DSS Compliant
       </div>
 
-    </div><!-- .card-body -->
+    </div>
   </section>
 
-  <!-- Payment History -->
+  <!-- History -->
   <div class="hist-wrap">
     <button class="hist-btn" id="hist-btn" aria-expanded="false" aria-controls="hist-list">
       Recent Payments
@@ -492,21 +386,24 @@
     <div class="hist-list" id="hist-list" role="list"></div>
   </div>
 
-</div><!-- .wrap -->
+</div>
 
+<!-- Moyasar SDK -->
+<script src="https://cdn.moyasar.com/mpf/1.14.0/moyasar.js"></script>
 <script>
-/* ═══════════════════════════════════════════════════════════════════
-   CONFIG
-═══════════════════════════════════════════════════════════════════ */
-const GQL_URL        = '/graphql';
-const AMOUNT_HALALAS = 10000;        // 100.00 SAR
+/* ════════════════════════════════════════════════════════════════════
+   CONFIG — publishable key (safe to expose in frontend)
+════════════════════════════════════════════════════════════════════ */
+const GRAPHQL_URL    = '/graphql';
+const AMOUNT_HALALAS = 10000;   // 100.00 SAR (1 SAR = 100 Halalas)
 const PRODUCT_DESC   = 'Premium Package — Annual Access';
+const MOYASAR_PK     = 'pk_test_RVnhNipcchuneCmBNKfUTM74rMroJfCsvR9U5hWb';
 
-/* ═══════════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════════════
    GRAPHQL HELPER
-═══════════════════════════════════════════════════════════════════ */
+════════════════════════════════════════════════════════════════════ */
 async function gql(query, variables = {}) {
-  const res = await fetch(GQL_URL, {
+  const res = await fetch(GRAPHQL_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -519,26 +416,21 @@ async function gql(query, variables = {}) {
   return json.data;
 }
 
+/* Create an INITIATED payment record in PostgreSQL */
 async function initiatePayment(payerName, payerEmail) {
   const data = await gql(`
     mutation Initiate($input: CreatePaymentInput!) {
       initiatePayment(input: $input) { id amount currency status }
     }
-  `, { input: { amount: AMOUNT_HALALAS, description: PRODUCT_DESC, payerName, payerEmail } });
+  `, {
+    input: {
+      amount: AMOUNT_HALALAS,
+      description: PRODUCT_DESC,
+      payerName,
+      payerEmail,
+    },
+  });
   return data.initiatePayment;
-}
-
-async function verifyPayment(localPaymentId) {
-  // In a real flow, moyasarPaymentId comes from the redirect callback.
-  // For demo purposes we use the local ID as a stand-in and mark as PAID via the service.
-  const data = await gql(`
-    mutation Verify($mId: ID!, $lId: ID!) {
-      verifyPayment(moyasarPaymentId: $mId, localPaymentId: $lId) {
-        id status amount currency paymentMethod
-      }
-    }
-  `, { mId: 'demo-' + localPaymentId, lId: localPaymentId });
-  return data.verifyPayment;
 }
 
 async function fetchPayments() {
@@ -548,119 +440,11 @@ async function fetchPayments() {
   return data.payments;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   METHOD TABS
-═══════════════════════════════════════════════════════════════════ */
-let currentMethod = 'creditcard';
-
-document.querySelectorAll('.method-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.method-tab').forEach(b => {
-      b.classList.remove('active'); b.setAttribute('aria-selected','false');
-    });
-    btn.classList.add('active'); btn.setAttribute('aria-selected','true');
-    currentMethod = btn.dataset.method;
-    const isCard = currentMethod === 'creditcard';
-    document.getElementById('card-fields').style.display = isCard ? '' : 'none';
-    document.getElementById('alt-fields').style.display  = isCard ? 'none' : '';
-    document.getElementById('pay-btn').textContent =
-      isCard ? '🔒 Pay 100.00 SAR' : '📱 Pay 100.00 SAR via ' + btn.textContent.trim();
-  });
-});
-
-/* ═══════════════════════════════════════════════════════════════════
-   CARD NUMBER FORMATTING + BRAND DETECTION
-═══════════════════════════════════════════════════════════════════ */
-const cardInput = document.getElementById('f-cardnum');
-const brandIcon = document.getElementById('card-brand-icon');
-
-function detectBrand(num) {
-  const n = num.replace(/\s/g,'');
-  if (/^4/.test(n)) return '💳'; // Visa
-  if (/^5[1-5]/.test(n)) return '💳'; // MC
-  if (/^3[47]/.test(n)) return '💳'; // Amex
-  if (/^(622|62[4-6]|628)/.test(n)) return '💳'; // UnionPay / Mada-ish
-  return '💳';
-}
-
-cardInput.addEventListener('input', e => {
-  let val = e.target.value.replace(/\D/g,'').slice(0,16);
-  e.target.value = val.replace(/(.{4})/g,'$1 ').trim();
-  brandIcon.textContent = detectBrand(val);
-});
-
-/* Expiry formatting */
-document.getElementById('f-exp').addEventListener('input', e => {
-  let val = e.target.value.replace(/\D/g,'');
-  if (val.length >= 3) val = val.slice(0,2) + ' / ' + val.slice(2,4);
-  e.target.value = val;
-});
-
-/* CVV — digits only */
-document.getElementById('f-cvv').addEventListener('input', e => {
-  e.target.value = e.target.value.replace(/\D/g,'').slice(0,4);
-});
-
-/* ═══════════════════════════════════════════════════════════════════
-   VALIDATION
-═══════════════════════════════════════════════════════════════════ */
-function showErr(id, show) {
-  document.getElementById(id).classList.toggle('show', show);
-  return show;
-}
-
-function validate() {
-  const name  = document.getElementById('f-name').value.trim();
-  const email = document.getElementById('f-email').value.trim();
-  if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    alert('Please enter a valid name and email address.');
-    return false;
-  }
-
-  if (currentMethod !== 'creditcard') return true;
-
-  const card  = document.getElementById('f-cardnum').value.replace(/\s/g,'');
-  const exp   = document.getElementById('f-exp').value;
-  const cvv   = document.getElementById('f-cvv').value;
-
-  let ok = true;
-  if (showErr('err-card', card.length < 15)) ok = false;
-  if (showErr('err-exp',  !/^\d{2}\s*\/\s*\d{2}$/.test(exp))) ok = false;
-  if (showErr('err-cvv',  cvv.length < 3)) ok = false;
-  return ok;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════════════
    STATUS OVERLAY
-═══════════════════════════════════════════════════════════════════ */
-function showOverlay(type, payment) {
-  const overlay = document.getElementById('overlay');
-  const box     = document.getElementById('status-box');
-  const isPaid  = type === 'paid';
-  const sar     = payment?.amount ? (payment.amount / 100).toFixed(2) : '100.00';
-
-  box.innerHTML = `
-    <div class="s-icon">${isPaid ? '✅' : '❌'}</div>
-    <div class="s-title ${isPaid ? 'ok' : 'err'}" id="s-title">
-      ${isPaid ? 'Payment Successful!' : 'Payment Failed'}
-    </div>
-    <p class="s-desc">
-      ${isPaid
-        ? `Your payment of <strong>${sar} SAR</strong> was processed successfully via <strong>${payment?.paymentMethod ?? currentMethod}</strong>.`
-        : 'Your payment could not be completed. Please check your card details and try again.'}
-    </p>
-    ${payment?.id ? `<div class="s-id">Payment ID: ${payment.id}</div>` : ''}
-    <button class="s-back" onclick="window.location.href='/'">
-      ${isPaid ? '🎉 Done — Return Home' : '↩ Try Again'}
-    </button>
-  `;
-  overlay.classList.add('show');
-  loadHistory();
-}
-
+════════════════════════════════════════════════════════════════════ */
 function showLoading(msg = 'Processing payment…') {
-  const box = document.getElementById('status-box');
-  box.innerHTML = `
+  document.getElementById('s-box').innerHTML = `
     <div class="loader" role="progressbar" aria-label="Loading"></div>
     <div class="s-title" style="color:var(--txt2);font-size:18px">${msg}</div>
     <p class="s-desc" style="margin-top:8px">Please wait, do not close this window.</p>
@@ -668,9 +452,31 @@ function showLoading(msg = 'Processing payment…') {
   document.getElementById('overlay').classList.add('show');
 }
 
-/* ═══════════════════════════════════════════════════════════════════
+function showStatus(type, payment) {
+  const isPaid = type === 'paid';
+  const sar    = payment?.amount ? (payment.amount / 100).toFixed(2) : '100.00';
+  document.getElementById('s-box').innerHTML = `
+    <div class="s-icon">${isPaid ? '✅' : '❌'}</div>
+    <div class="s-title ${isPaid ? 'ok' : 'err'}" id="s-title">
+      ${isPaid ? 'Payment Successful!' : 'Payment Failed'}
+    </div>
+    <p class="s-desc">
+      ${isPaid
+        ? `Your payment of <strong>${sar} SAR</strong> was processed successfully. A receipt has been sent to your email.`
+        : 'Your payment could not be completed. Please check your card details and try again.'}
+    </p>
+    ${payment?.id ? `<div class="s-id">Payment ID: ${payment.id}</div>` : ''}
+    <button class="s-back" onclick="window.location.href='/'">
+      ${isPaid ? '🎉 Done — Return Home' : '↩ Try Again'}
+    </button>
+  `;
+  document.getElementById('overlay').classList.add('show');
+  loadHistory();
+}
+
+/* ════════════════════════════════════════════════════════════════════
    HISTORY
-═══════════════════════════════════════════════════════════════════ */
+════════════════════════════════════════════════════════════════════ */
 async function loadHistory() {
   try {
     const list  = document.getElementById('hist-list');
@@ -682,12 +488,9 @@ async function loadHistory() {
     list.innerHTML = items.map(p => {
       const sar  = (p.amount / 100).toFixed(2);
       const date = new Date(p.createdAt).toLocaleString('en-SA', {
-        year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
+        year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit',
       });
-      const pillClass = {
-        PAID:'pill-paid', FAILED:'pill-failed',
-        INITIATED:'pill-initiated', AUTHORIZED:'pill-authorized'
-      }[p.status] ?? 'pill-initiated';
+      const cls = { PAID:'pill-paid', FAILED:'pill-failed', INITIATED:'pill-initiated', AUTHORIZED:'pill-authorized' }[p.status] ?? 'pill-initiated';
       return `
         <div class="hist-item" role="listitem">
           <div class="hi-left">
@@ -695,10 +498,10 @@ async function loadHistory() {
             <div class="hi-date">${date}</div>
           </div>
           <div class="hi-amt">${sar} SAR</div>
-          <span class="pill ${pillClass}">${p.status}</span>
+          <span class="pill ${cls}">${p.status}</span>
         </div>`;
     }).join('');
-  } catch(e) { console.warn('History load failed:', e.message); }
+  } catch(e) { console.warn('History error:', e.message); }
 }
 
 document.getElementById('hist-btn').addEventListener('click', function() {
@@ -708,57 +511,82 @@ document.getElementById('hist-btn').addEventListener('click', function() {
   if (isOpen) loadHistory();
 });
 
-/* ═══════════════════════════════════════════════════════════════════
-   PAY BUTTON
-═══════════════════════════════════════════════════════════════════ */
-document.getElementById('pay-btn').addEventListener('click', async () => {
-  if (!validate()) return;
-
-  const btn   = document.getElementById('pay-btn');
-  const name  = document.getElementById('f-name').value.trim();
-  const email = document.getElementById('f-email').value.trim();
-
-  btn.disabled = true;
-  showLoading('Initiating payment…');
-
-  try {
-    // Step 1 — create INITIATED record in PostgreSQL via GraphQL
-    const payment = await initiatePayment(name, email);
-
-    showLoading('Contacting Moyasar…');
-    // Simulate the Moyasar processing delay (3DS / bank auth)
-    await new Promise(r => setTimeout(r, 2000));
-
-    showLoading('Verifying with Moyasar…');
-    // Step 2 — in production, this is called after Moyasar's redirect callback.
-    // We call it directly here for the demo flow.
-    const verified = await verifyPayment(payment.id);
-
-    showOverlay(verified.status === 'PAID' ? 'paid' : 'failed', {
-      ...verified,
-      paymentMethod: currentMethod,
-    });
-
-  } catch (err) {
-    console.error('Payment error:', err);
-    document.getElementById('overlay').classList.remove('show');
-    alert('Error: ' + err.message);
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-/* ═══════════════════════════════════════════════════════════════════
-   HANDLE CALLBACK REDIRECT (real Moyasar flow)
-═══════════════════════════════════════════════════════════════════ */
-(async () => {
+/* ════════════════════════════════════════════════════════════════════
+   HANDLE CALLBACK REDIRECT
+   Moyasar redirects to /payments/callback → NestJS verifies with sk_test_
+   → redirects to /?status=paid&payment_id=...
+════════════════════════════════════════════════════════════════════ */
+(function handleCallback() {
   const params = new URLSearchParams(window.location.search);
   const status = params.get('status');
   const payId  = params.get('payment_id');
   if (!status) return;
   window.history.replaceState({}, '', '/');
-  showOverlay(status === 'paid' ? 'paid' : 'failed', { id: payId, amount: AMOUNT_HALALAS });
+  showStatus(status === 'paid' ? 'paid' : 'failed', { id: payId, amount: AMOUNT_HALALAS });
 })();
+
+/* ════════════════════════════════════════════════════════════════════
+   MOYASAR INIT — mounts the real card form using pk_test_ key
+════════════════════════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  if (!window.Moyasar) {
+    document.getElementById('moyasar-form-container').innerHTML =
+      '<p style="color:var(--coral);font-size:13px;padding:12px 0">⚠️ Could not load Moyasar SDK. Check your internet connection.</p>';
+    return;
+  }
+
+  Moyasar.init({
+    element: '#moyasar-payment-form',
+
+    amount:              AMOUNT_HALALAS,
+    currency:            'SAR',
+    description:         PRODUCT_DESC,
+    publishable_api_key: MOYASAR_PK,
+
+    // NestJS callback endpoint — localPaymentId is injected in on_initiating
+    callback_url: window.location.origin + '/payments/callback',
+
+    methods: ['creditcard', 'stcpay'],
+
+    /* Called BEFORE Moyasar submits the card data.
+       We create the local DB record here and inject its ID into the callback URL. */
+    on_initiating: async function() {
+      const name  = document.getElementById('f-name').value.trim();
+      const email = document.getElementById('f-email').value.trim();
+
+      if (!name) { alert('Please enter your full name.'); return false; }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Please enter a valid email address.'); return false;
+      }
+
+      try {
+        // Create INITIATED record in PostgreSQL via GraphQL mutation
+        const payment = await initiatePayment(name, email);
+
+        // Inject local UUID into Moyasar's callback URL so the
+        // NestJS controller knows which DB record to update
+        this.callback_url =
+          `${window.location.origin}/payments/callback?payment_id=${payment.id}`;
+
+        return true; // allow Moyasar to proceed with card submission
+      } catch (err) {
+        console.error('initiatePayment failed:', err);
+        alert('Could not start payment session. Please try again.');
+        return false;
+      }
+    },
+
+    /* Called right before Moyasar redirects to callback_url */
+    on_completed: function () {
+      showLoading('Verifying payment with Moyasar…');
+    },
+
+    /* Called if Moyasar reports an immediate failure */
+    on_failed: function (payment) {
+      showStatus('failed', { amount: AMOUNT_HALALAS });
+    },
+  });
+});
 </script>
 </body>
 </html>
