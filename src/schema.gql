@@ -1,0 +1,55 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input CreatePaymentInput {
+  amount: Int!
+  description: String!
+  payerEmail: String!
+  payerName: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  """Create a new payment session"""
+  initiatePayment(input: CreatePaymentInput!): Payment!
+
+  """Verify a Moyasar payment server-side"""
+  verifyPayment(localPaymentId: ID, moyasarPaymentId: ID!): Payment!
+}
+
+type Payment {
+  amount: Int!
+  callbackUrl: String
+  createdAt: DateTime!
+  currency: String!
+  description: String!
+  id: ID!
+  moyasarId: String
+  payerEmail: String
+  payerName: String
+  paymentMethod: String
+  status: PaymentStatus!
+  updatedAt: DateTime!
+}
+
+"""The payment lifecycle status"""
+enum PaymentStatus {
+  AUTHORIZED
+  FAILED
+  INITIATED
+  PAID
+  REFUNDED
+}
+
+type Query {
+  """Get a payment by ID"""
+  payment(id: ID!): Payment!
+
+  """Get all payments"""
+  payments: [Payment!]!
+}
