@@ -345,7 +345,7 @@
       <!-- Moyasar Payment Form — SDK renders card fields here -->
       <div class="lbl">Payment Details</div>
       <div id="moyasar-form-container">
-        <div id="moyasar-payment-form"></div>
+        <div class="mysr-form"></div>
       </div>
 
       <!-- Accepted methods -->
@@ -536,53 +536,27 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   Moyasar.init({
-    element: '#moyasar-payment-form',
+    // Standard Moyasar selector
+    element: '.mysr-form',
 
     amount:              AMOUNT_HALALAS,
     currency:            'SAR',
     description:         PRODUCT_DESC,
     publishable_api_key: MOYASAR_PK,
 
-    // NestJS callback endpoint — localPaymentId is injected in on_initiating
+    // Server-to-server verification endpoint
     callback_url: window.location.origin + '/payments/callback',
 
-    methods: ['creditcard', 'stcpay'],
+    // Enabled payment methods and card networks
+    methods: ['creditcard'],
+    supported_networks: ['mada', 'visa', 'mastercard', 'amex'],
 
-    /* Called BEFORE Moyasar submits the card data.
-       We create the local DB record here and inject its ID into the callback URL. */
-    on_initiating: async function() {
-      const name  = document.getElementById('f-name').value.trim();
-      const email = document.getElementById('f-email').value.trim();
-
-      if (!name) { alert('Please enter your full name.'); return false; }
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        alert('Please enter a valid email address.'); return false;
-      }
-
-      try {
-        // Create INITIATED record in PostgreSQL via GraphQL mutation
-        const payment = await initiatePayment(name, email);
-
-        // Inject local UUID into Moyasar's callback URL so the
-        // NestJS controller knows which DB record to update
-        this.callback_url =
-          `${window.location.origin}/payments/callback?payment_id=${payment.id}`;
-
-        return true; // allow Moyasar to proceed with card submission
-      } catch (err) {
-        console.error('initiatePayment failed:', err);
-        alert('Could not start payment session. Please try again.');
-        return false;
-      }
-    },
-
-    /* Called right before Moyasar redirects to callback_url */
-    on_completed: function () {
+    on_completed: function(payment) {
       showLoading('Verifying payment with Moyasar…');
     },
 
-    /* Called if Moyasar reports an immediate failure */
-    on_failed: function (payment) {
+    on_failure: function(error) {
+      console.warn('Moyasar payment failed:', error);
       showStatus('failed', { amount: AMOUNT_HALALAS });
     },
   });

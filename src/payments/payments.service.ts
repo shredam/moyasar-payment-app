@@ -48,21 +48,17 @@ export class PaymentsService {
    * Verify a Moyasar payment server-side using the secret key.
    * Called after the Moyasar form redirects the user back with a payment ID.
    */
-  async verifyPayment(moyasarPaymentId: string, localPaymentId: string): Promise<Payment> {
+  /**
+   * Verify a Moyasar payment server-side using the secret key.
+   * Called after Moyasar redirects back to callback URL with payment `id`.
+   */
+  async verifyPayment(moyasarPaymentId: string, localPaymentId?: string): Promise<Payment> {
     const secretKey = this.configService.get<string>('MOYASAR_SECRET_KEY');
     if (!secretKey) {
-      throw new BadRequestException('Moyasar secret key not configured');
+      throw new BadRequestException('Moyasar secret key not configured in .env');
     }
 
-    // Find local payment
-    const payment = await this.paymentsRepository.findOne({
-      where: { id: localPaymentId },
-    });
-    if (!payment) {
-      throw new NotFoundException(`Payment record ${localPaymentId} not found`);
-    }
-
-    // Fetch from Moyasar API — server-to-server using SECRET key (sk_test_...)
+    // 1. Fetch live payment status from Moyasar API — server-to-server with SECRET key
     const authHeader = Buffer.from(`${secretKey}:`).toString('base64');
     let moyasarData: any;
 
@@ -76,28 +72,37 @@ export class PaymentsService {
       moyasarData = response.data;
     } catch (error: any) {
       this.logger.error(
-        `Moyasar API error: ${error?.response?.data?.message ?? error.message}`,
+        `Moyasar API verification failed: ${error?.response?.data?.message ?? error.message}`,
       );
-      throw new BadRequestException('Could not verify payment with Moyasar');
+      throw new BadRequestException(`Could not verify payment ${moyasarPaymentId} with Moyasar`);
     }
 
-    // Validate amount & currency match to prevent tampering
-    if (
-      moyasarData.amount !== payment.amount ||
-      moyasarData.currency !== payment.currency
-    ) {
-      this.logger.warn(
-        `Payment ${localPaymentId} amount/currency mismatch! ` +
-          `Expected ${payment.amount} ${payment.currency}, ` +
-          `got ${moyasarData.amount} ${moyasarData.currency}`,
-      );
-      payment.status = PaymentStatus.FAILED;
-      return this.paymentsRepository.save(payment);
+    // 2. Find local payment record (by local UUID or moyasarId)
+    let payment: Payment | null = null;
+
+    if (localPaymentId) {
+      payment = await this.paymentsRepository.findOne({ where: { id: localPaymentId } });
     }
 
-    // Map Moyasar status to local enum
+    if (!payment) {
+      payment = await this.paymentsRepository.findOne({ where: { moyasarId: moyasarPaymentId } });
+    }
+
+    // 3. Create record if it doesn't exist yet
+    if (!payment) {
+      payment = this.paymentsRepository.create({
+        moyasarId: moyasarPaymentId,
+        amount: moyasarData.amount,
+        currency: moyasarData.currency ?? 'SAR',
+        description: moyasarData.description ?? 'Moyasar Payment',
+        payerName: moyasarData.source?.name ?? 'Customer',
+        payerEmail: moyasarData.source?.email ?? null,
+      });
+    }
+
+    // 4. Update status & metadata from verified Moyasar response
     payment.moyasarId = moyasarData.id;
-    payment.paymentMethod = moyasarData.source?.type ?? null;
+    payment.paymentMethod = moyasarData.source?.type ?? moyasarData.source?.company ?? 'creditcard';
 
     if (moyasarData.status === 'paid') {
       payment.status = PaymentStatus.PAID;
@@ -108,7 +113,7 @@ export class PaymentsService {
     }
 
     const updated = await this.paymentsRepository.save(payment);
-    this.logger.log(`Payment ${localPaymentId} status → ${updated.status}`);
+    this.logger.log(`Verified payment ${updated.id} (Moyasar: ${moyasarData.id}) → ${updated.status}`);
     return updated;
   }
 

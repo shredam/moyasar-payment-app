@@ -17,15 +17,15 @@ export class PaymentsController {
   async handleCallback(
     @Query('id') moyasarId: string,
     @Query('status') status: string,
-    @Query('payment_id') localPaymentId: string,
+    @Query('payment_id') localPaymentId?: string,
   ) {
     this.logger.log(
       `Moyasar callback received — moyasarId: ${moyasarId}, status: ${status}, localId: ${localPaymentId}`,
     );
 
-    if (!moyasarId || !localPaymentId) {
-      this.logger.warn('Missing callback parameters, redirecting to home');
-      return { url: '/?status=error&message=missing_params' };
+    if (!moyasarId) {
+      this.logger.warn('Missing Moyasar ID in callback redirect');
+      return { url: '/?status=error&message=missing_id' };
     }
 
     try {
@@ -38,7 +38,7 @@ export class PaymentsController {
       };
     } catch (error: any) {
       this.logger.error(`Verification failed: ${error.message}`);
-      return { url: `/?status=failed&payment_id=${localPaymentId}` };
+      return { url: `/?status=failed&message=${encodeURIComponent(error.message)}` };
     }
   }
 }

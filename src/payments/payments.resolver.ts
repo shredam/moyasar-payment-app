@@ -27,7 +27,7 @@ export class PaymentsResolver {
   @Mutation(() => Payment, { description: 'Verify a Moyasar payment server-side' })
   verifyPayment(
     @Args('moyasarPaymentId', { type: () => ID }) moyasarPaymentId: string,
-    @Args('localPaymentId', { type: () => ID }) localPaymentId: string,
+    @Args('localPaymentId', { type: () => ID, nullable: true }) localPaymentId?: string,
   ): Promise<Payment> {
     return this.paymentsService.verifyPayment(moyasarPaymentId, localPaymentId);
   }
