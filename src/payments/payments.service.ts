@@ -77,7 +77,15 @@ export class PaymentsService {
       throw new BadRequestException(`Could not verify payment ${moyasarPaymentId} with Moyasar`);
     }
 
-    // 2. Find local payment record (by local UUID or moyasarId)
+    // 2. Calculate payment status from Moyasar response
+    let finalStatus: PaymentStatus = PaymentStatus.FAILED;
+    if (moyasarData?.status === 'paid') {
+      finalStatus = PaymentStatus.PAID;
+    } else if (moyasarData?.status === 'authorized') {
+      finalStatus = PaymentStatus.AUTHORIZED;
+    }
+
+    // 3. Find local payment record (by local UUID or moyasarId)
     let payment: Payment | null = null;
 
     if (localPaymentId) {
@@ -88,32 +96,35 @@ export class PaymentsService {
       payment = await this.paymentsRepository.findOne({ where: { moyasarId: moyasarPaymentId } });
     }
 
-    // 3. Create record if it doesn't exist yet
+    // 4. Create or update local record
     if (!payment) {
       payment = this.paymentsRepository.create({
         moyasarId: moyasarPaymentId,
-        amount: moyasarData.amount,
-        currency: moyasarData.currency ?? 'SAR',
-        description: moyasarData.description ?? 'Moyasar Payment',
-        payerName: moyasarData.source?.name ?? 'Customer',
-        payerEmail: moyasarData.source?.email ?? null,
+        amount: moyasarData?.amount ?? 10000,
+        currency: moyasarData?.currency ?? 'SAR',
+        description: moyasarData?.description ?? 'Premium Package — Annual Access',
+        payerName: moyasarData?.source?.name ?? 'Customer',
+        payerEmail: moyasarData?.source?.email ?? null,
+        status: finalStatus,
+        paymentMethod: moyasarData?.source?.type ?? moyasarData?.source?.company ?? 'creditcard',
       });
-    }
-
-    // 4. Update status & metadata from verified Moyasar response
-    payment.moyasarId = moyasarData.id;
-    payment.paymentMethod = moyasarData.source?.type ?? moyasarData.source?.company ?? 'creditcard';
-
-    if (moyasarData.status === 'paid') {
-      payment.status = PaymentStatus.PAID;
-    } else if (moyasarData.status === 'authorized') {
-      payment.status = PaymentStatus.AUTHORIZED;
     } else {
-      payment.status = PaymentStatus.FAILED;
+      payment.moyasarId = moyasarPaymentId;
+      payment.status = finalStatus;
+      if (moyasarData?.source?.type) {
+        payment.paymentMethod = moyasarData.source.type;
+      }
+      // Retain existing payer details from initiatePayment if available
+      if ((!payment.payerName || payment.payerName === 'Customer') && moyasarData?.source?.name) {
+        payment.payerName = moyasarData.source.name;
+      }
+      if (!payment.payerEmail && moyasarData?.source?.email) {
+        payment.payerEmail = moyasarData.source.email;
+      }
     }
 
     const updated = await this.paymentsRepository.save(payment);
-    this.logger.log(`Verified payment ${updated.id} (Moyasar: ${moyasarData.id}) → ${updated.status}`);
+    this.logger.log(`Verified payment ${updated.id} (Moyasar: ${moyasarPaymentId}) → ${updated.status}`);
     return updated;
   }
 

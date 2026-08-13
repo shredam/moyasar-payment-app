@@ -536,20 +536,35 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   Moyasar.init({
-    // Standard Moyasar selector
     element: '.mysr-form',
 
     amount:              AMOUNT_HALALAS,
     currency:            'SAR',
     description:         PRODUCT_DESC,
     publishable_api_key: MOYASAR_PK,
+    callback_url:        window.location.origin + '/payments/callback',
 
-    // Server-to-server verification endpoint
-    callback_url: window.location.origin + '/payments/callback',
-
-    // Enabled payment methods and card networks
     methods: ['creditcard'],
     supported_networks: ['mada', 'visa', 'mastercard', 'amex'],
+
+    on_initiating: async function() {
+      const name  = document.getElementById('f-name')?.value.trim();
+      const email = document.getElementById('f-email')?.value.trim();
+
+      if (!name || !email) {
+        alert('Please enter your Full Name and Email Address above before paying.');
+        return false;
+      }
+
+      try {
+        const payment = await initiatePayment(name, email);
+        this.callback_url = `${window.location.origin}/payments/callback?payment_id=${payment.id}`;
+        return true;
+      } catch (err) {
+        console.warn('initiatePayment warning:', err);
+        return true;
+      }
+    },
 
     on_completed: function(payment) {
       showLoading('Verifying payment with Moyasar…');
@@ -560,6 +575,28 @@ window.addEventListener('DOMContentLoaded', () => {
       showStatus('failed', { amount: AMOUNT_HALALAS });
     },
   });
+
+  // Attach submit listener to capture name/email for form submit
+  document.addEventListener('submit', async function(e) {
+    const form = e.target;
+    if (!form || !form.closest('.mysr-form') || form.dataset.initiated === 'true') return;
+
+    const name  = document.getElementById('f-name')?.value.trim();
+    const email = document.getElementById('f-email')?.value.trim();
+
+    if (name && email) {
+      try {
+        const payment = await initiatePayment(name, email);
+        form.dataset.initiated = 'true';
+        const cbInput = form.querySelector('input[name="callback_url"]');
+        if (cbInput) {
+          cbInput.value = `${window.location.origin}/payments/callback?payment_id=${payment.id}`;
+        }
+      } catch (err) {
+        console.warn('Submit intercept error:', err);
+      }
+    }
+  }, true);
 });
 </script>
 </body>
