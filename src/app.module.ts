@@ -5,6 +5,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { PaymentsModule } from './payments/payments.module';
 import { Payment } from './payments/entities/payment.entity';
 
@@ -32,6 +33,7 @@ import { Payment } from './payments/entities/payment.entity';
       playground: false,
       introspection: true,
       csrfPrevention: false,
+      plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
