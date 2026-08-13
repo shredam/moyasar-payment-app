@@ -1,0 +1,29 @@
+# compiled output
+/dist
+/node_modules
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+/coverage
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.idea
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
