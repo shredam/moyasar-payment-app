@@ -29,7 +29,12 @@ import { Payment } from './payments/entities/payment.entity';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
-      playground: true,
+      playground: false,
+      introspection: true,
+      apolloServerOptions: {
+        csrfPrevention: false, // disable for local dev
+        introspection: true,
+      },
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
