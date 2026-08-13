@@ -62,6 +62,17 @@ export class PaymentsService {
       throw new NotFoundException(`Payment record ${localPaymentId} not found`);
     }
 
+    // ─── DEMO MODE ────────────────────────────────────────────────────
+    // When moyasarPaymentId starts with 'demo-', skip the real API call
+    // and mark the payment as PAID directly. Remove this in production.
+    if (moyasarPaymentId.startsWith('demo-')) {
+      this.logger.log(`[DEMO] Simulating successful payment for ${localPaymentId}`);
+      payment.moyasarId = moyasarPaymentId;
+      payment.paymentMethod = 'creditcard';
+      payment.status = PaymentStatus.PAID;
+      return this.paymentsRepository.save(payment);
+    }
+
     // Fetch from Moyasar API — server-to-server using SECRET key
     const authHeader = Buffer.from(`${secretKey}:`).toString('base64');
     let moyasarData: any;

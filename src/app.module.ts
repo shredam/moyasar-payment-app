@@ -31,10 +31,7 @@ import { Payment } from './payments/entities/payment.entity';
       sortSchema: true,
       playground: false,
       introspection: true,
-      apolloServerOptions: {
-        csrfPrevention: false, // disable for local dev
-        introspection: true,
-      },
+      csrfPrevention: false,
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
