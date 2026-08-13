@@ -535,6 +535,8 @@ window.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  let activePaymentId = null;
+
   Moyasar.init({
     element: '.mysr-form',
 
@@ -556,8 +558,15 @@ window.addEventListener('DOMContentLoaded', () => {
         return false;
       }
 
+      // If already initiated for this checkout attempt, reuse the callback URL
+      if (activePaymentId) {
+        this.callback_url = `${window.location.origin}/payments/callback?payment_id=${activePaymentId}`;
+        return true;
+      }
+
       try {
         const payment = await initiatePayment(name, email);
+        activePaymentId = payment.id;
         this.callback_url = `${window.location.origin}/payments/callback?payment_id=${payment.id}`;
         return true;
       } catch (err) {
@@ -575,28 +584,6 @@ window.addEventListener('DOMContentLoaded', () => {
       showStatus('failed', { amount: AMOUNT_HALALAS });
     },
   });
-
-  // Attach submit listener to capture name/email for form submit
-  document.addEventListener('submit', async function(e) {
-    const form = e.target;
-    if (!form || !form.closest('.mysr-form') || form.dataset.initiated === 'true') return;
-
-    const name  = document.getElementById('f-name')?.value.trim();
-    const email = document.getElementById('f-email')?.value.trim();
-
-    if (name && email) {
-      try {
-        const payment = await initiatePayment(name, email);
-        form.dataset.initiated = 'true';
-        const cbInput = form.querySelector('input[name="callback_url"]');
-        if (cbInput) {
-          cbInput.value = `${window.location.origin}/payments/callback?payment_id=${payment.id}`;
-        }
-      } catch (err) {
-        console.warn('Submit intercept error:', err);
-      }
-    }
-  }, true);
 });
 </script>
 </body>
