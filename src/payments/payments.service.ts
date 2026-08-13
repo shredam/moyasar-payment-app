@@ -85,7 +85,7 @@ export class PaymentsService {
       finalStatus = PaymentStatus.AUTHORIZED;
     }
 
-    // 3. Find local payment record (by local UUID or moyasarId)
+    // 3. Find existing local DB record (by local ID, moyasarId, or latest INITIATED session)
     let payment: Payment | null = null;
 
     if (localPaymentId) {
@@ -94,6 +94,14 @@ export class PaymentsService {
 
     if (!payment) {
       payment = await this.paymentsRepository.findOne({ where: { moyasarId: moyasarPaymentId } });
+    }
+
+    // Fallback: Link to the most recent INITIATED session if no direct ID match
+    if (!payment) {
+      payment = await this.paymentsRepository.findOne({
+        where: { status: PaymentStatus.INITIATED },
+        order: { createdAt: 'DESC' },
+      });
     }
 
     // 4. Create or update local record
