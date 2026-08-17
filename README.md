@@ -1,166 +1,171 @@
-# Moyasar Payment App
+# منصة اشتراكات المدارس والطلاب — Moyasar Payment App
 
-> A production-ready payment integration using **NestJS · GraphQL · PostgreSQL · Moyasar**
-
-## Tech Stack
-| Layer       | Technology                          |
-|-------------|-------------------------------------|
-| Backend     | NestJS (TypeScript)                 |
-| API         | GraphQL (Code-First, Apollo Server) |
-| Database    | PostgreSQL via TypeORM              |
-| Payment     | Moyasar (Credit Card, Mada, Apple Pay) |
-| Frontend    | Vanilla HTML/CSS/JS + Moyasar Web SDK |
+> منصة إلكترونية متكاملة باللغة العربية (RTL) مع خط **Cairo** لإدارة اشتراكات المدارس والطلاب ومتابعة المراحل والصفوف الدراسية مع بوابة دمج ميسر **Moyasar Payment Gateway (مدى / فيزا / ماستركارد / Apple Pay)** وتطوير خادم **NestJS GraphQL**.
 
 ---
 
-## Prerequisites
+## 🛠️ تقنيات المشروع (Tech Stack)
 
-- **Node.js** ≥ 18
-- **Docker Desktop** (for PostgreSQL)
-- **Moyasar account** → get your test keys at [dashboard.moyasar.com](https://dashboard.moyasar.com)
+| الطبقة (Layer) | التقنية (Technology) |
+|---|---|
+| **الواجهة الأمامية (Frontend)** | React 18 (TypeScript), Vite, Cairo Font (RTL), Moyasar Web SDK v1.14.0 |
+| **الخادم (Backend)** | NestJS 11 (TypeScript), Express, ServeStatic |
+| **واجهة البرمجة (API)** | GraphQL (Code-First, Apollo Server) |
+| **قاعدة البيانات (Database)** | TypeORM (PostgreSQL / In-Memory Fallback) |
+| **بوابة الدفع (Payment)** | Moyasar Payment Gateway (SAR / ريال سعودي) |
 
 ---
 
-## Quick Start
+## 🚀 المميزات الرئيسية (Key Features)
 
-### 1. Clone & install
+1. **التعامل بـ ريال سعودي (SAR)**: جميع المبالغ والأسعار والضريبة (14%) محسبة وممثلة بـ **ريال سعودي**.
+2. **بدون شاشة تسجيل دخول (No Auth)**: الدخول المباشر إلى المنصة باسم المستخدم الافتراضي (`سارة أحمد`).
+3. **اختيار نوع الاشتراك (Role Selection)**:
+   - طلب تعاقد لمدرسة (School Lead Request).
+   - اشتراك مدرسي للطالب (School Student Subscription).
+   - طالب مستقل ومدرّس خصوصي.
+4. **طلب تعاقد المدرسة (School Lead Form)**:
+   - نموذج كامل لإدخال اسم المدرسة، مسؤول التواصل، المحافظة، عدد الطلاب، المراحل، ووسيلة التواصل المفضلة.
+   - حفظ الطلب مباشرة في قاعدة البيانات عبر GraphQL (`createSchoolLead`).
+5. **اختيار المراحل والصفوف (Stage & Grade Selection)**:
+   - بطاقات المراحل (الابتدائية، المتوسطة، الثانوية).
+   - تبويب الفصول الدراسية (الفصل الأول / الثاني).
+   - ملخص السلة والتحديث اللحظي لعدد الصفوف والإجمالي الشهري.
+6. **بيانات الطالب والمدرسة (Student Verification & Invoice)**:
+   - اختيار المدرسة واستخراج كود المدرسة.
+   - التحقق من كود الطالب واسترجاع بياناته.
+   - تفاصيل الفاتورة وحساب ضريبة القيمة المضافة 14% والإجمالي المستحق.
+7. **دمج ميسر Moyasar Payment Checkout**:
+   - بدء جلسة الدفع وتوليد معرف العملية (`initiatePayment`).
+   - عرض نموذج الدفع الإلكتروني المباشر من ميسر بطاقات مدى، فيزا، ماستركارد، وأبل باي.
+8. **صفحة نتيجة الدفع (Payment Result Page)**:
+   - شاشة عرض حالة الدفع (**ناجح 🎉** / **فاشل ⚠️**).
+   - حفظ السلة والبيانات في `localStorage` لإمكانية زر **"إعادة محاولة الدفع"** عند الفشل دون فقدان البيانات.
+
+---
+
+## 📋 تشغيل المشروع (Quick Start)
+
+### 1. تثبيت الحزم (Install Dependencies)
 ```bash
-git clone <your-repo-url>
-cd moyasar-payment-app
+# تثبيت حزم الخادم والواجهة الأمامية
 npm install
+cd client && npm install && cd ..
 ```
 
-### 2. Configure environment
-```bash
-cp .env.example .env
-```
-Edit `.env` and set your **Moyasar test keys**:
+### 2. إعداد ملف البيئة (.env)
+تأكد من وجود مفاتيح ميسر الاختبارية في `.env`:
 ```env
-MOYASAR_PUBLISHABLE_KEY=pk_test_...
-MOYASAR_SECRET_KEY=sk_test_...
+MOYASAR_PUBLISHABLE_KEY=pk_test_RVnhNipcchuneCmBNKfUTM74rMroJfCsvR9U5hWb
+MOYASAR_SECRET_KEY=sk_test_h2mpweM3uAAeN9XEzg62nsnWnyxSLUjcbjgBHsiX
+PORT=3000
+APP_URL=http://localhost:3000
 ```
 
-### 3. Start PostgreSQL
+### 3. بناء وتشغيل المشروع (Build & Start)
 ```bash
-docker compose up -d
+# بناء الواجهة والـ Backend
+npm run build
+
+# تشغيل الخادم
+npm start
 ```
 
-### 4. Run the app
-```bash
-npm run start:dev
-```
-
-Open:
-- **Payment UI** → http://localhost:3000/
-- **GraphQL Playground** → http://localhost:3000/graphql
+الروابط المتاحة:
+- **واجهة المنصة التطبيقية**: [http://localhost:3000/](http://localhost:3000/)
+- **استكشاف GraphQL Playground**: [http://localhost:3000/graphql](http://localhost:3000/graphql)
 
 ---
 
-## Moyasar Test Cards
+## 📡 GraphQL API Reference
 
-| Network        | Card Number         | Exp   | CVV |
-|----------------|---------------------|-------|-----|
-| Visa (Success) | 4111 1111 1111 1111 | 12/28 | 123 |
-| Mastercard     | 5500 0000 0000 0004 | 12/28 | 123 |
-| Mada           | 4242 4242 4242 4242 | 12/28 | 123 |
-| Decline Test   | 4000 0000 0000 0002 | 12/28 | 123 |
-
----
-
-## GraphQL API
-
-### Mutations
+### الاستعلامات (Queries)
 ```graphql
-# Initiate a payment session
-mutation {
-  initiatePayment(input: {
-    amount: 10000          # 100.00 SAR in Halalas
-    description: "My Product"
-    payerName: "Ahmed Al-Rashidi"
-    payerEmail: "ahmed@example.com"
-  }) {
-    id status amount currency
+# 1. قائمة المدارس المتاحة
+query {
+  schools {
+    id
+    name
+    code
   }
 }
 
-# Verify after Moyasar redirect
-mutation {
-  verifyPayment(
-    moyasarPaymentId: "moyasar-uuid-here"
-    localPaymentId: "local-uuid-here"
-  ) {
-    id status paymentMethod
+# 2. التحقق من كود الطالب
+query VerifyStudent($schoolCode: String!, $studentCode: String!) {
+  verifyStudentCode(schoolCode: $schoolCode, studentCode: $studentCode) {
+    id
+    code
+    fullName
+    phone
+    grade
+    schoolCode
+    guardianName
+    guardianPhone
+  }
+}
+
+# 3. عرض الاشتراكات
+query {
+  subscriptions {
+    id
+    studentCode
+    grandTotal
+    status
+    createdAt
   }
 }
 ```
 
-### Queries
+### الطفرات (Mutations)
 ```graphql
-# List all payments
-query { payments { id amount currency status description createdAt } }
+# 1. إرسال طلب تعاقد مدرسة
+mutation CreateLead($input: CreateSchoolLeadInput!) {
+  createSchoolLead(input: $input) {
+    id
+    schoolName
+    contactPerson
+    email
+    phone
+    createdAt
+  }
+}
 
-# Single payment
-query { payment(id: "uuid") { id status moyasarId } }
+# 2. إنشاء اشتراك طالب
+mutation CreateSub($input: CreateSubscriptionInput!) {
+  createSubscription(input: $input) {
+    id
+    studentCode
+    grandTotal
+    status
+    createdAt
+  }
+}
+
+# 3. بدء جلسة دفع ميسر
+mutation InitiatePayment($input: CreatePaymentInput!) {
+  initiatePayment(input: $input) {
+    id
+    amount
+    currency
+    status
+    callbackUrl
+  }
+}
 ```
 
 ---
 
-## Payment Flow
-```
-User fills form  →  GraphQL: initiatePayment  →  Save DB (INITIATED)
-       ↓
-Moyasar SDK collects card data securely (no card data touches our server)
-       ↓
-Moyasar processes payment & redirects to /payments/callback?id=...&payment_id=...
-       ↓
-NestJS Controller verifies with Moyasar REST API (using SECRET key)
-       ↓
-DB updated (PAID / FAILED) → User sees result page
-```
+## 💳 بطاقات ميسر الاختبارية (Moyasar Test Cards)
+
+| النوع | رقم البطاقة | تاريخ الانتهاء | رمز الأمان (CVV) |
+|---|---|---|---|
+| **Visa (نجاح)** | `4111 1111 1111 1111` | 12/28 | 123 |
+| **Mastercard** | `5500 0000 0000 0004` | 12/28 | 123 |
+| **Mada** | `4242 4242 4242 4242` | 12/28 | 123 |
+| **فشل (Decline)** | `4000 0000 0000 0002` | 12/28 | 123 |
 
 ---
 
-## Project Structure
-```
-moyasar-payment-app/
-├── docker-compose.yml           # PostgreSQL container
-├── .env.example                 # Environment template
-├── public/
-│   └── index.html               # Payment checkout UI
-└── src/
-    ├── main.ts                  # App bootstrap
-    ├── app.module.ts            # Root module
-    └── payments/
-        ├── entities/
-        │   └── payment.entity.ts   # DB entity + GraphQL type
-        ├── dto/
-        │   └── create-payment.input.ts
-        ├── payments.service.ts     # Business logic
-        ├── payments.resolver.ts    # GraphQL resolver
-        ├── payments.controller.ts  # HTTP callback handler
-        └── payments.module.ts
-```
-
----
-
-## Environment Variables
-
-| Variable                   | Description                            | Default            |
-|----------------------------|----------------------------------------|--------------------|
-| `DB_HOST`                  | PostgreSQL host                        | `localhost`        |
-| `DB_PORT`                  | PostgreSQL port                        | `5432`             |
-| `DB_USERNAME`              | Database user                          | `moyasar`          |
-| `DB_PASSWORD`              | Database password                      | `moyasar_secret`   |
-| `DB_NAME`                  | Database name                          | `moyasar_payments` |
-| `MOYASAR_PUBLISHABLE_KEY`  | Moyasar public key (frontend use)      | **required**       |
-| `MOYASAR_SECRET_KEY`       | Moyasar secret key (server-side only)  | **required**       |
-| `PORT`                     | App port                               | `3000`             |
-| `APP_URL`                  | App base URL (for callback generation) | `http://localhost:3000` |
-
-> ⚠️ **Never** commit your real `.env` file or expose your `MOYASAR_SECRET_KEY` to the client.
-
----
-
-## License
+## 📄 الترخيص (License)
 
 MIT

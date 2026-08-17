@@ -8,6 +8,12 @@ import { join } from 'path';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { PaymentsModule } from './payments/payments.module';
 import { Payment } from './payments/entities/payment.entity';
+import { LeadsModule } from './leads/leads.module';
+import { SchoolLead } from './leads/entities/school-lead.entity';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { Subscription } from './subscriptions/entities/subscription.entity';
+import { School } from './schools/entities/school.entity';
+import { Student } from './students/entities/student.entity';
 
 @Module({
   imports: [
@@ -18,11 +24,11 @@ import { Payment } from './payments/entities/payment.entity';
         type: 'postgres',
         host: config.get<string>('DB_HOST', 'localhost'),
         port: config.get<number>('DB_PORT', 5432),
-        username: config.get<string>('DB_USERNAME', 'moyasar'),
-        password: config.get<string>('DB_PASSWORD', 'moyasar_secret'),
+        username: config.get<string>('DB_USERNAME', 'postgres'),
+        password: config.get<string>('DB_PASSWORD', '123456789'),
         database: config.get<string>('DB_NAME', 'moyasar_payments'),
-        entities: [Payment],
-        synchronize: true, // auto-migrate in dev — disable in production
+        entities: [Payment, SchoolLead, Subscription, School, Student],
+        synchronize: true,
       }),
       inject: [ConfigService],
     }),
@@ -39,6 +45,9 @@ import { Payment } from './payments/entities/payment.entity';
       rootPath: join(__dirname, '..', 'public'),
     }),
     PaymentsModule,
+    LeadsModule,
+    SubscriptionsModule,
   ],
 })
 export class AppModule {}
+

@@ -9,12 +9,40 @@ input CreatePaymentInput {
   payerName: String!
 }
 
+input CreateSchoolLeadInput {
+  approxStudentCount: String!
+  contactPerson: String!
+  email: String!
+  governorate: String!
+  notes: String
+  phone: String!
+  preferredChannel: String! = "مكالمة هاتفية"
+  schoolName: String!
+  stagesToCover: [String!]!
+}
+
+input CreateSubscriptionInput {
+  gradeCount: Int!
+  gradePackage: [String!]!
+  grandTotal: Float!
+  schoolCode: String!
+  studentCode: String!
+  subtotal: Float!
+  vatAmount: Float!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
 
 type Mutation {
+  """Submit a new school contracting lead request"""
+  createSchoolLead(input: CreateSchoolLeadInput!): SchoolLead!
+
+  """Create and confirm a student package subscription"""
+  createSubscription(input: CreateSubscriptionInput!): Subscription!
+
   """Create a new payment session"""
   initiatePayment(input: CreatePaymentInput!): Payment!
 
@@ -52,4 +80,61 @@ type Query {
 
   """Get all payments"""
   payments: [Payment!]!
+
+  """Get all school lead requests"""
+  schoolLeads: [SchoolLead!]!
+
+  """Get available schools"""
+  schools: [School!]!
+
+  """Get all subscriptions"""
+  subscriptions: [Subscription!]!
+
+  """Lookup student details by school and student code"""
+  verifyStudentCode(schoolCode: String!, studentCode: String!): Student!
+}
+
+type School {
+  code: String!
+  id: ID!
+  isActive: Boolean!
+  name: String!
+}
+
+type SchoolLead {
+  approxStudentCount: String!
+  contactPerson: String!
+  createdAt: DateTime!
+  email: String!
+  governorate: String!
+  id: ID!
+  notes: String
+  phone: String!
+  preferredChannel: String!
+  schoolName: String!
+  stagesToCover: [String!]!
+}
+
+type Student {
+  code: String!
+  fullName: String!
+  grade: String!
+  guardianName: String!
+  guardianPhone: String!
+  id: ID!
+  phone: String!
+  schoolCode: String!
+}
+
+type Subscription {
+  createdAt: DateTime!
+  gradeCount: Int!
+  gradePackage: [String!]!
+  grandTotal: Float!
+  id: ID!
+  schoolCode: String!
+  status: String!
+  studentCode: String!
+  subtotal: Float!
+  vatAmount: Float!
 }
