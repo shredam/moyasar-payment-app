@@ -64,7 +64,6 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
     localStorage.setItem('app_agree_terms', String(agreeTerms));
   }, [agreeTerms]);
 
-
   useEffect(() => {
     getSchoolsApi().then((data) => {
       if (data && data.length > 0) {
@@ -88,36 +87,12 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
   const grandTotal = subtotal + vatAmount;
   const fmt = (n: number) => n.toLocaleString('ar-SA') + ' ريال سعودي';
 
-
   const canPay =
     subtotal > 0 &&
     agreeData &&
     agreeTerms &&
     studentCode.trim().length >= 4 &&
     !loading;
-
-  const handlePayDirect = async () => {
-    if (!canPay) return;
-    setLoading(true);
-
-    try {
-      await createSubscriptionApi({
-        studentCode: studentCode.trim(),
-        schoolCode: selectedSchoolCode,
-        gradePackage: cartItems.map((item) => `${item.grade.name} (${item.subject})`),
-        gradeCount: cartItems.length,
-        subtotal,
-        vatAmount,
-        grandTotal,
-      });
-      onSuccess(grandTotal);
-    } catch (err) {
-      console.error(err);
-      onSuccess(grandTotal);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleInitiateMoyasar = async () => {
     if (!canPay) return;
@@ -327,7 +302,7 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
             <span className="cart-total-val">{fmt(grandTotal)}</span>
           </div>
 
-          {/* Payment Action Buttons */}
+          {/* Payment Action Button */}
           <button
             type="button"
             className="btn-pay-confirm"
@@ -337,24 +312,9 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
               backgroundColor: canPay ? '#14b8a6' : '#e2e3e6',
               color: canPay ? '#ffffff' : '#a8aab0',
               cursor: canPay ? 'pointer' : 'not-allowed',
-              marginBottom: '8px',
             }}
           >
             💳 الدفع بالبطاقة عبر ميسر Moyasar
-          </button>
-
-          <button
-            type="button"
-            className="btn-pay-confirm"
-            disabled={!canPay}
-            onClick={handlePayDirect}
-            style={{
-              backgroundColor: canPay ? '#16171a' : '#e2e3e6',
-              color: canPay ? '#ffffff' : '#a8aab0',
-              cursor: canPay ? 'pointer' : 'not-allowed',
-            }}
-          >
-            {loading ? 'جاري التأكيد...' : 'تأكيد الاشتراك مباشرة'}
           </button>
         </div>
       </div>

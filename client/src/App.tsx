@@ -9,12 +9,14 @@ import { StageGradeSelectionStep } from './components/StageGradeSelectionStep';
 import { StudentCheckoutStep } from './components/StudentCheckoutStep';
 import { SubscriptionSuccessStep } from './components/SubscriptionSuccessStep';
 import { PaymentResultPage } from './components/PaymentResultPage';
+import { AdminDataPage } from './components/AdminDataPage';
 
 export function App() {
   const userName = 'سارة أحمد';
   const userEmail = 'sara.ahmed@example.com';
 
-  // State persistence via localStorage so data survives redirects & failed payment retries
+  // Workflow steps: 'home' | 1 | 'lead' | 'leadDone' | 2 | 3 | 4 | 'result' | 'data'
+  const [step, setStep] = useState<string | number>('home');
   const [selectedRole, setSelectedRole] = useState<'teacher' | 'school_student' | 'independent_student' | 'tutor' | null>(() => {
     return (localStorage.getItem('app_selected_role') as any) || null;
   });
@@ -45,9 +47,6 @@ export function App() {
       return 0;
     }
   });
-
-  // Workflow steps: 'home' | 1 | 'lead' | 'leadDone' | 2 | 3 | 4 | 'result'
-  const [step, setStep] = useState<string | number>('home');
 
   // Payment result callback state
   const [paymentResult, setPaymentResult] = useState<{
@@ -126,6 +125,9 @@ export function App() {
 
   const getCrumbs = () => {
     if (step === 'home') return [];
+    if (step === 'data') {
+      return [{ name: 'سجلات قاعدة البيانات', active: true }];
+    }
     if (step === 'result') {
       return [
         { name: 'نوع الاشتراك' },
@@ -161,9 +163,14 @@ export function App() {
         crumbs={getCrumbs()}
         actionLabel={step === 'home' ? 'تسجيل الخروج' : 'إلغاء'}
         onAction={resetAll}
+        onViewData={() => setStep('data')}
       />
 
       <main className="app-wrapper">
+        {step === 'data' && (
+          <AdminDataPage onBackHome={resetAll} />
+        )}
+
         {step === 'result' && paymentResult && (
           <PaymentResultPage
             status={paymentResult.status}
@@ -182,6 +189,7 @@ export function App() {
           <HomePage
             userName={userName}
             onGoToSubscriptions={() => setStep(1)}
+            onGoToAdminData={() => setStep('data')}
           />
         )}
 

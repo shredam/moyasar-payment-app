@@ -6,6 +6,7 @@ interface NavbarProps {
   crumbs: { name: string; active?: boolean }[];
   actionLabel: string;
   onAction: () => void;
+  onViewData?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -14,6 +15,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   crumbs,
   actionLabel,
   onAction,
+  onViewData,
 }) => {
   return (
     <header className="navbar-container">
@@ -36,9 +38,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         ))}
       </nav>
 
-      <button type="button" className="navbar-action-btn" onClick={onAction}>
-        {actionLabel}
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        {onViewData && (
+          <button type="button" className="navbar-action-btn" onClick={onViewData} style={{ color: 'var(--primary-teal)' }}>
+            📊 سجلات البيانات
+          </button>
+        )}
+        <button type="button" className="navbar-action-btn" onClick={onAction}>
+          {actionLabel}
+        </button>
+      </div>
     </header>
   );
 };

@@ -3,11 +3,13 @@ import React from 'react';
 interface HomePageProps {
   userName: string;
   onGoToSubscriptions: () => void;
+  onGoToAdminData: () => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
   userName,
   onGoToSubscriptions,
+  onGoToAdminData,
 }) => {
   return (
     <div className="home-container">
@@ -23,13 +25,23 @@ export const HomePage: React.FC<HomePageProps> = ({
           لم يتم تفعيل أي اشتراك على هذا الحساب حتى الآن. يمكنك بدء تجربة التعليم التفاعلية ومتابعة المناهج باختيار خطة الاشتراك المناسبة.
         </p>
 
-        <button
-          type="button"
-          className="btn-primary-dark"
-          onClick={onGoToSubscriptions}
-        >
-          الذهاب لصفحة الاشتراكات
-        </button>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '10px' }}>
+          <button
+            type="button"
+            className="btn-primary-dark"
+            onClick={onGoToSubscriptions}
+          >
+            الذهاب لصفحة الاشتراكات
+          </button>
+
+          <button
+            type="button"
+            className="btn-secondary-link"
+            onClick={onGoToAdminData}
+          >
+            📊 استرجاع بيانات قاعدة البيانات
+          </button>
+        </div>
       </div>
     </div>
   );

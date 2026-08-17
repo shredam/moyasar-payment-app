@@ -158,3 +158,63 @@ export async function initiatePaymentApi(input: {
   }
 }
 
+export async function getAllDatabaseDataApi() {
+  const query = `
+    query GetAllDatabaseData {
+      schoolLeads {
+        id
+        schoolName
+        contactPerson
+        email
+        phone
+        governorate
+        approxStudentCount
+        stagesToCover
+        preferredChannel
+        notes
+        createdAt
+      }
+      subscriptions {
+        id
+        studentCode
+        schoolCode
+        gradePackage
+        gradeCount
+        subtotal
+        vatAmount
+        grandTotal
+        status
+        createdAt
+      }
+      payments {
+        id
+        moyasarId
+        amount
+        currency
+        status
+        description
+        payerName
+        payerEmail
+        paymentMethod
+        createdAt
+      }
+    }
+  `;
+
+  try {
+    const data = await fetchGraphQL(query);
+    return {
+      schoolLeads: data.schoolLeads || [],
+      subscriptions: data.subscriptions || [],
+      payments: data.payments || [],
+    };
+  } catch (err) {
+    return {
+      schoolLeads: [],
+      subscriptions: [],
+      payments: [],
+    };
+  }
+}
+
+
