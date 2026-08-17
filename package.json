@@ -7,7 +7,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "postinstall": "cd client && npm install",
-    "build": "npm run build:client && nest build",
+    "build": "npm run build:client && npx nest build",
+
     "build:client": "cd client && npm install && npm run build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main",
