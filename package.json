@@ -6,10 +6,12 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "postinstall": "cd client && npm install",
     "build": "npm run build:client && nest build",
-    "build:client": "npm --prefix client run build",
+    "build:client": "cd client && npm install && npm run build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
+
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
