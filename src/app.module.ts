@@ -20,16 +20,33 @@ import { Student } from './students/entities/student.entity';
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get<string>('DB_HOST', 'localhost'),
-        port: config.get<number>('DB_PORT', 5432),
-        username: config.get<string>('DB_USERNAME', 'postgres'),
-        password: config.get<string>('DB_PASSWORD', '123456789'),
-        database: config.get<string>('DB_NAME', 'moyasar_payments'),
-        entities: [Payment, SchoolLead, Subscription, School, Student],
-        synchronize: true,
-      }),
+      useFactory: (config: ConfigService) => {
+        const dbUrl = config.get<string>('DATABASE_URL') || config.get<string>('DB_URL');
+        if (dbUrl) {
+          return {
+            type: 'postgres',
+            url: dbUrl,
+            entities: [Payment, SchoolLead, Subscription, School, Student],
+            synchronize: true,
+            ssl: { rejectUnauthorized: false },
+          };
+        }
+
+        const host = config.get<string>('DB_HOST', 'localhost');
+        const isRenderOrCloud = host.includes('render.com') || host.includes('dpg-') || process.env.NODE_ENV === 'production';
+
+        return {
+          type: 'postgres',
+          host,
+          port: config.get<number>('DB_PORT', 5432),
+          username: config.get<string>('DB_USERNAME', 'postgres'),
+          password: config.get<string>('DB_PASSWORD', '123456789'),
+          database: config.get<string>('DB_NAME', 'moyasar_payments'),
+          entities: [Payment, SchoolLead, Subscription, School, Student],
+          synchronize: true,
+          ssl: isRenderOrCloud ? { rejectUnauthorized: false } : false,
+        };
+      },
       inject: [ConfigService],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -50,4 +67,3 @@ import { Student } from './students/entities/student.entity';
   ],
 })
 export class AppModule {}
-
