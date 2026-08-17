@@ -60,7 +60,9 @@ export interface StudentProfile {
   schoolCode: string;
   guardianName: string;
   guardianPhone: string;
+  isUsed?: boolean;
 }
+
 
 export interface SchoolLeadInput {
   schoolName: string;

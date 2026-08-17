@@ -50,7 +50,12 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
 
   useEffect(() => {
     localStorage.setItem('app_school_code', selectedSchoolCode);
+    if (selectedSchoolCode === 'NIS-1042') setStudentCode('20451');
+    else if (selectedSchoolCode === 'MFS-2318') setStudentCode('30101');
+    else if (selectedSchoolCode === 'AND-7710') setStudentCode('40201');
+    else if (selectedSchoolCode === 'HKM-5063') setStudentCode('50301');
   }, [selectedSchoolCode]);
+
 
   useEffect(() => {
     localStorage.setItem('app_student_code', studentCode);
@@ -87,11 +92,19 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
   const grandTotal = subtotal + vatAmount;
   const fmt = (n: number) => n.toLocaleString('ar-SA') + ' ريال سعودي';
 
+  const currentSchool = schools.find((s) => s.code === selectedSchoolCode) || schools[0];
+  const registeredSchool = student ? schools.find((s) => s.code === student.schoolCode) : null;
+  const isSchoolMismatch = student !== null && student.schoolCode !== selectedSchoolCode;
+  const isCodeExpired = !!student?.isUsed;
+
   const canPay =
     subtotal > 0 &&
     agreeData &&
     agreeTerms &&
     studentCode.trim().length >= 4 &&
+    student !== null &&
+    !isCodeExpired &&
+    !isSchoolMismatch &&
     !loading;
 
   const handleInitiateMoyasar = async () => {
@@ -124,16 +137,18 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
             callback_url: `${window.location.origin}/payments/callback?payment_id=${payment.id}`,
             methods: ['creditcard'],
             supported_networks: ['mada', 'visa', 'mastercard', 'amex'],
-            on_completed: function () {
-              createSubscriptionApi({
-                studentCode: studentCode.trim(),
-                schoolCode: selectedSchoolCode,
-                gradePackage: cartItems.map((item) => `${item.grade.name} (${item.subject})`),
-                gradeCount: cartItems.length,
-                subtotal,
-                vatAmount,
-                grandTotal,
-              }).then(() => onSuccess(grandTotal));
+            on_completed: function (paymentObj: any) {
+              if (paymentObj && paymentObj.status === 'paid') {
+                createSubscriptionApi({
+                  studentCode: studentCode.trim(),
+                  schoolCode: selectedSchoolCode,
+                  gradePackage: cartItems.map((item) => `${item.grade.name} (${item.subject})`),
+                  gradeCount: cartItems.length,
+                  subtotal,
+                  vatAmount,
+                  grandTotal,
+                }).then(() => onSuccess(grandTotal));
+              }
             },
             on_failure: function (err: any) {
               console.warn('Moyasar payment failure:', err);
@@ -148,8 +163,6 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
       setLoading(false);
     }
   };
-
-  const currentSchool = schools.find((s) => s.code === selectedSchoolCode) || schools[0];
 
   return (
     <div className="checkout-step-container">
@@ -209,9 +222,56 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
               onChange={(e) => setStudentCode(e.target.value)}
             />
 
+            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>أكواد الطلاب المتاحة لهذه المدرسة:</span>
+              {(selectedSchoolCode === 'NIS-1042'
+                ? ['20451', '20452', '20453']
+                : selectedSchoolCode === 'MFS-2318'
+                ? ['30101', '30102']
+                : selectedSchoolCode === 'AND-7710'
+                ? ['40201', '40202']
+                : ['50301', '50302']
+              ).map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-light)',
+                    background: studentCode === c ? 'var(--primary-teal-dark)' : '#ffffff',
+                    color: studentCode === c ? '#ffffff' : 'var(--primary-teal-dark)',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                  }}
+                  onClick={() => setStudentCode(c)}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+
+
             {student ? (
-              <div className="student-profile-box">
-                <div className="profile-header-title">بيانات الطالب</div>
+              <div className={`student-profile-box ${isCodeExpired || isSchoolMismatch ? 'expired-box' : ''}`}>
+                <div className="profile-header-title" style={{ color: isCodeExpired || isSchoolMismatch ? '#e11d48' : undefined }}>
+                  بيانات الطالب {isSchoolMismatch ? '— (عدم تطابق المدرسة ⚠️)' : isCodeExpired ? '— (كود مستخدم ومنتهي الصلاحية ⚠️)' : ''}
+                </div>
+
+                {isSchoolMismatch && (
+                  <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', color: '#e11d48', padding: '10px 14px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '10px' }}>
+                    ⚠️ كود الطالب ({student.code}) تابع لـ "{registeredSchool ? registeredSchool.name : student.schoolCode}" وليس تابعًا لـ "{currentSchool.name}". يرجى اختيار المدرسة الصحيحة من القائمة أعلاه.
+                  </div>
+                )}
+
+                {isCodeExpired && !isSchoolMismatch && (
+                  <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', color: '#e11d48', padding: '10px 14px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '10px' }}>
+                    ⚠️ تم استخدام كود الطالب ({student.code}) مسبقًا في اشتراك آخر وهو منتهي الصلاحية حاليًا. لا يمكن إعادة استخدام هذا الكود.
+                  </div>
+                )}
+
                 <div className="profile-grid">
                   <div className="profile-field">
                     <span className="field-label">الاسم الكامل</span>
@@ -232,8 +292,10 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
                     </span>
                   </div>
                   <div className="profile-field">
-                    <span className="field-label">المدرسة</span>
-                    <span className="field-val">{currentSchool.name}</span>
+                    <span className="field-label">المدرسة التابع لها</span>
+                    <span className="field-val" style={{ color: isSchoolMismatch ? '#e11d48' : undefined, fontWeight: 700 }}>
+                      {registeredSchool ? registeredSchool.name : student.schoolCode}
+                    </span>
                   </div>
                   <div className="profile-field">
                     <span className="field-label">ولي الأمر</span>
@@ -264,7 +326,7 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
             </div>
 
             {/* Moyasar SDK Embedded Form */}
-            {showMoyasarForm && (
+            {showMoyasarForm && !isCodeExpired && !isSchoolMismatch && (
               <div style={{ marginTop: '16px', border: '1px solid var(--primary-teal)', borderRadius: '14px', padding: '18px', background: '#fafafa' }}>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary-teal-dark)', marginBottom: '12px' }}>
                   💳 الدفع الإلكتروني عبر ميسر Moyasar (مدى / فيزا / ماستركارد)
@@ -310,11 +372,15 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
             onClick={handleInitiateMoyasar}
             style={{
               backgroundColor: canPay ? '#14b8a6' : '#e2e3e6',
-              color: canPay ? '#ffffff' : '#a8aab0',
+              color: canPay ? '#ffffff' : (isCodeExpired || isSchoolMismatch ? '#e11d48' : '#a8aab0'),
               cursor: canPay ? 'pointer' : 'not-allowed',
             }}
           >
-            💳 الدفع بالبطاقة عبر ميسر Moyasar
+            {isSchoolMismatch
+              ? '⚠️ كود الطالب غير متطابق مع المدرسة'
+              : isCodeExpired
+              ? '⚠️ كود الطالب مستخدم ومنتهي الصلاحية'
+              : '💳 الدفع بالبطاقة عبر ميسر Moyasar'}
           </button>
         </div>
       </div>

@@ -81,6 +81,7 @@ export async function verifyStudentCodeApi(schoolCode: string, studentCode: stri
         schoolCode
         guardianName
         guardianPhone
+        isUsed
       }
     }
   `;
@@ -97,9 +98,43 @@ export async function verifyStudentCodeApi(schoolCode: string, studentCode: stri
       schoolCode: schoolCode || 'NIS-1042',
       guardianName: 'أحمد سعيد إبراهيم',
       guardianPhone: '01198765432',
+      isUsed: false,
     };
   }
 }
+
+export async function getStudentsApi(): Promise<StudentProfile[]> {
+  const query = `
+    query GetStudents {
+      students {
+        id
+        code
+        fullName
+        phone
+        grade
+        schoolCode
+        guardianName
+        guardianPhone
+        isUsed
+      }
+    }
+  `;
+  try {
+    const data = await fetchGraphQL(query);
+    return data.students;
+  } catch (e) {
+    return [
+      { id: 'std-20451', code: '20451', fullName: 'محمد أحمد سعيد إبراهيم', phone: '01012345678', grade: 'الصف الأول الابتدائي', schoolCode: 'NIS-1042', guardianName: 'أحمد سعيد إبراهيم', guardianPhone: '01198765432', isUsed: false },
+      { id: 'std-20452', code: '20452', fullName: 'سارة محمود علي حسنين', phone: '01022334455', grade: 'الصف الثاني الابتدائي', schoolCode: 'NIS-1042', guardianName: 'محمود علي حسنين', guardianPhone: '01122334455', isUsed: false },
+      { id: 'std-20453', code: '20453', fullName: 'عمر خالد يوسف النجار', phone: '01033445566', grade: 'الصف الثالث الابتدائي', schoolCode: 'NIS-1042', guardianName: 'خالد يوسف النجار', guardianPhone: '01133445566', isUsed: false },
+      { id: 'std-30101', code: '30101', fullName: 'مريم طارق عبد الرحمن', phone: '01044556677', grade: 'الصف الأول الابتدائي', schoolCode: 'MFS-2318', guardianName: 'طارق عبد الرحمن', guardianPhone: '01144556677', isUsed: false },
+      { id: 'std-40201', code: '40201', fullName: 'هنا كريم حسن مصطفى', phone: '01066778899', grade: 'الصف الأول الابتدائي', schoolCode: 'AND-7710', guardianName: 'كريم حسن مصطفى', guardianPhone: '01166778899', isUsed: false },
+      { id: 'std-50301', code: '50301', fullName: 'نور الدين عمرو سليمان', phone: '01088990011', grade: 'الصف الأول الابتدائي', schoolCode: 'HKM-5063', guardianName: 'عمرو سليمان', guardianPhone: '01188990011', isUsed: false },
+    ];
+  }
+}
+
+
 
 export async function createSubscriptionApi(input: SubscriptionInput) {
   const mutation = `
@@ -126,6 +161,21 @@ export async function createSubscriptionApi(input: SubscriptionInput) {
     };
   }
 }
+
+export async function releaseStudentCodeApi(schoolCode: string, studentCode: string) {
+  const mutation = `
+    mutation ReleaseStudentCode($schoolCode: String!, $studentCode: String!) {
+      releaseStudentCode(schoolCode: $schoolCode, studentCode: $studentCode)
+    }
+  `;
+  try {
+    const data = await fetchGraphQL(mutation, { schoolCode, studentCode });
+    return data.releaseStudentCode;
+  } catch (e) {
+    return true;
+  }
+}
+
 
 export async function initiatePaymentApi(input: {
   amount: number;

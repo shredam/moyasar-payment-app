@@ -11,6 +11,8 @@ import { SubscriptionSuccessStep } from './components/SubscriptionSuccessStep';
 import { PaymentResultPage } from './components/PaymentResultPage';
 import { AdminDataPage } from './components/AdminDataPage';
 
+import { createSubscriptionApi, releaseStudentCodeApi } from './services/api';
+
 export function App() {
   const userName = 'سارة أحمد';
   const userEmail = 'sara.ahmed@example.com';
@@ -88,13 +90,38 @@ export function App() {
 
     if (statusParam) {
       window.history.replaceState({}, '', '/');
+      const stCode = localStorage.getItem('app_student_code') || '';
+      const schCode = localStorage.getItem('app_school_code') || '';
+
       if (statusParam === 'paid') {
+        const savedCart = localStorage.getItem('app_cart_items');
+        const cart = savedCart ? JSON.parse(savedCart) : [];
+        const subtotalVal = Number(localStorage.getItem('app_subtotal') || '0');
+        const vatVal = Math.round(subtotalVal * 0.14);
+        const totalVal = subtotalVal + vatVal;
+
+        if (stCode && schCode && cart.length > 0) {
+          createSubscriptionApi({
+            studentCode: stCode,
+            schoolCode: schCode,
+            gradePackage: cart.map((i: any) => `${i.grade.name} (${i.subject})`),
+            gradeCount: cart.length,
+            subtotal: subtotalVal,
+            vatAmount: vatVal,
+            grandTotal: totalVal,
+          });
+        }
+
         setPaymentResult({
           status: 'paid',
           paymentId: payIdParam,
         });
         setStep('result');
       } else if (statusParam === 'failed' || statusParam === 'error') {
+        if (stCode && schCode) {
+          releaseStudentCodeApi(schCode, stCode);
+        }
+
         setPaymentResult({
           status: 'failed',
           paymentId: payIdParam,
@@ -104,6 +131,7 @@ export function App() {
       }
     }
   }, []);
+
 
   const resetAll = () => {
     setStep('home');

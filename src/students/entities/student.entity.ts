@@ -35,4 +35,8 @@ export class Student {
   @Field()
   @Column()
   guardianPhone: string;
+
+  @Field({ defaultValue: false })
+  @Column({ default: false })
+  isUsed: boolean;
 }

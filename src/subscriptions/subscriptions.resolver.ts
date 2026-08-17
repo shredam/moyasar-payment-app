@@ -14,6 +14,11 @@ export class SubscriptionsResolver {
     return this.subscriptionsService.getSchools();
   }
 
+  @Query(() => [Student], { name: 'students', description: 'Get registered pre-configured students' })
+  getStudents(): Promise<Student[]> {
+    return this.subscriptionsService.getStudents();
+  }
+
   @Query(() => Student, { name: 'verifyStudentCode', description: 'Lookup student details by school and student code' })
   verifyStudentCode(
     @Args('schoolCode') schoolCode: string,
@@ -27,6 +32,14 @@ export class SubscriptionsResolver {
     @Args('input') input: CreateSubscriptionInput,
   ): Promise<Subscription> {
     return this.subscriptionsService.create(input);
+  }
+
+  @Mutation(() => Boolean, { description: 'Release a student code if payment fails' })
+  releaseStudentCode(
+    @Args('schoolCode') schoolCode: string,
+    @Args('studentCode') studentCode: string,
+  ): Promise<boolean> {
+    return this.subscriptionsService.releaseStudentCode(schoolCode, studentCode);
   }
 
   @Query(() => [Subscription], { name: 'subscriptions', description: 'Get all subscriptions' })

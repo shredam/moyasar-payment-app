@@ -46,6 +46,9 @@ type Mutation {
   """Create a new payment session"""
   initiatePayment(input: CreatePaymentInput!): Payment!
 
+  """Release a student code if payment fails"""
+  releaseStudentCode(schoolCode: String!, studentCode: String!): Boolean!
+
   """Verify a Moyasar payment server-side"""
   verifyPayment(localPaymentId: ID, moyasarPaymentId: ID!): Payment!
 }
@@ -87,6 +90,9 @@ type Query {
   """Get available schools"""
   schools: [School!]!
 
+  """Get registered pre-configured students"""
+  students: [Student!]!
+
   """Get all subscriptions"""
   subscriptions: [Subscription!]!
 
@@ -122,6 +128,7 @@ type Student {
   guardianName: String!
   guardianPhone: String!
   id: ID!
+  isUsed: Boolean!
   phone: String!
   schoolCode: String!
 }
