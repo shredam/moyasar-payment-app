@@ -234,6 +234,23 @@ export const StageGradeSelectionStep: React.FC<StageGradeSelectionStepProps> = (
           </button>
         </div>
       </div>
+
+      {/* Sticky Bottom Bar for Mobile Viewports */}
+      {cartItems.length > 0 && (
+        <div className="mobile-cart-sticky-bar">
+          <div className="mobile-cart-info">
+            <span className="mobile-cart-count">تم اختيار {cartItems.length} صفوف</span>
+            <span className="mobile-cart-total">{fmt(total)}</span>
+          </div>
+          <button
+            type="button"
+            className="mobile-cart-btn"
+            onClick={() => onConfirm(cartItems, total)}
+          >
+            متابعة إدخال البيانات ‹
+          </button>
+        </div>
+      )}
     </div>
   );
 };
