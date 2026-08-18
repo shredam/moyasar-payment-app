@@ -97,7 +97,7 @@ type Query {
   subscriptions: [Subscription!]!
 
   """Lookup student details by school and student code"""
-  verifyStudentCode(schoolCode: String!, studentCode: String!): Student!
+  verifyStudentCode(schoolCode: String!, studentCode: String!): Student
 }
 
 type School {

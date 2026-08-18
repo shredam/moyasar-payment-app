@@ -69,7 +69,7 @@ export async function getSchoolsApi(): Promise<SchoolItem[]> {
   }
 }
 
-export async function verifyStudentCodeApi(schoolCode: string, studentCode: string): Promise<StudentProfile> {
+export async function verifyStudentCodeApi(schoolCode: string, studentCode: string): Promise<StudentProfile | null> {
   const query = `
     query VerifyStudentCode($schoolCode: String!, $studentCode: String!) {
       verifyStudentCode(schoolCode: $schoolCode, studentCode: $studentCode) {
@@ -87,19 +87,24 @@ export async function verifyStudentCodeApi(schoolCode: string, studentCode: stri
   `;
   try {
     const data = await fetchGraphQL(query, { schoolCode, studentCode });
-    return data.verifyStudentCode;
+    return data ? data.verifyStudentCode : null;
   } catch (e) {
-    return {
-      id: `std-${studentCode}`,
-      code: studentCode,
-      fullName: 'محمد أحمد سعيد إبراهيم',
-      phone: '01012345678',
-      grade: 'الصف الأول الابتدائي',
-      schoolCode: schoolCode || 'NIS-1042',
-      guardianName: 'أحمد سعيد إبراهيم',
-      guardianPhone: '01198765432',
-      isUsed: false,
+    const knownRoster: Record<string, StudentProfile> = {
+      '20451': { id: 'std-20451', code: '20451', fullName: 'محمد أحمد سعيد إبراهيم', phone: '01012345678', grade: 'الصف الأول الابتدائي', schoolCode: 'NIS-1042', guardianName: 'أحمد سعيد إبراهيم', guardianPhone: '01198765432', isUsed: false },
+      '20452': { id: 'std-20452', code: '20452', fullName: 'سارة محمود علي حسنين', phone: '01022334455', grade: 'الصف الثاني الابتدائي', schoolCode: 'NIS-1042', guardianName: 'محمود علي حسنين', guardianPhone: '01122334455', isUsed: false },
+      '20453': { id: 'std-20453', code: '20453', fullName: 'عمر خالد يوسف النجار', phone: '01033445566', grade: 'الصف الثالث الابتدائي', schoolCode: 'NIS-1042', guardianName: 'خالد يوسف النجار', guardianPhone: '01133445566', isUsed: false },
+      '30101': { id: 'std-30101', code: '30101', fullName: 'مريم طارق عبد الرحمن', phone: '01044556677', grade: 'الصف الأول الابتدائي', schoolCode: 'MFS-2318', guardianName: 'طارق عبد الرحمن', guardianPhone: '01144556677', isUsed: false },
+      '30102': { id: 'std-30102', code: '30102', fullName: 'يوسف أحمد فؤاد سالم', phone: '01055667788', grade: 'الصف الثاني الابتدائي', schoolCode: 'MFS-2318', guardianName: 'أحمد فؤاد سالم', guardianPhone: '01155667788', isUsed: false },
+      '40201': { id: 'std-40201', code: '40201', fullName: 'هنا كريم حسن مصطفى', phone: '01066778899', grade: 'الصف الأول الابتدائي', schoolCode: 'AND-7710', guardianName: 'كريم حسن مصطفى', guardianPhone: '01166778899', isUsed: false },
+      '40202': { id: 'std-40202', code: '40202', fullName: 'حمزة شريف عبد العزيز', phone: '01077889900', grade: 'الصف الثالث الابتدائي', schoolCode: 'AND-7710', guardianName: 'شريف عبد العزيز', guardianPhone: '01177889900', isUsed: false },
+      '50301': { id: 'std-50301', code: '50301', fullName: 'نور الدين عمرو سليمان', phone: '01088990011', grade: 'الصف الأول الابتدائي', schoolCode: 'HKM-5063', guardianName: 'عمرو سليمان', guardianPhone: '01188990011', isUsed: false },
+      '50302': { id: 'std-50302', code: '50302', fullName: 'فريدة هاني إبراهيم كمال', phone: '01099001122', grade: 'الصف الثاني الابتدائي', schoolCode: 'HKM-5063', guardianName: 'هاني إبراهيم كمال', guardianPhone: '01199001122', isUsed: false },
     };
+
+    if (knownRoster[studentCode]) {
+      return knownRoster[studentCode];
+    }
+    return null;
   }
 }
 

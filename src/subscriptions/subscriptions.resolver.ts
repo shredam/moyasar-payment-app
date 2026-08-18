@@ -19,11 +19,11 @@ export class SubscriptionsResolver {
     return this.subscriptionsService.getStudents();
   }
 
-  @Query(() => Student, { name: 'verifyStudentCode', description: 'Lookup student details by school and student code' })
+  @Query(() => Student, { name: 'verifyStudentCode', nullable: true, description: 'Lookup student details by school and student code' })
   verifyStudentCode(
     @Args('schoolCode') schoolCode: string,
     @Args('studentCode') studentCode: string,
-  ): Promise<Student> {
+  ): Promise<Student | null> {
     return this.subscriptionsService.verifyStudentCode(schoolCode, studentCode);
   }
 

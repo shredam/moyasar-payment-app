@@ -167,7 +167,7 @@ export class SubscriptionsService {
     }));
   }
 
-  async verifyStudentCode(schoolCode: string, studentCode: string): Promise<Student> {
+  async verifyStudentCode(schoolCode: string, studentCode: string): Promise<Student | null> {
     const key = `${schoolCode}:${studentCode}`;
     let isUsed = this.usedStudentCodes.has(key) || this.usedStudentCodes.has(studentCode);
 
@@ -206,19 +206,8 @@ export class SubscriptionsService {
       };
     }
 
-
-    const school = this.defaultSchools.find((s) => s.code === schoolCode) || this.defaultSchools[0];
-    return {
-      id: `std-${studentCode}`,
-      code: studentCode,
-      fullName: 'طالب غير مسجل بالاسم الحقيقي',
-      phone: '01000000000',
-      grade: 'الصف الأول الابتدائي',
-      schoolCode: school.code,
-      guardianName: 'ولي الأمر الافتراضي',
-      guardianPhone: '01100000000',
-      isUsed,
-    };
+    // Code does not exist for this school/system
+    return null;
   }
 
   async releaseStudentCode(schoolCode: string, studentCode: string): Promise<boolean> {

@@ -254,7 +254,12 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
             </div>
 
 
-            {student ? (
+            {studentCode.trim().length >= 4 && !student ? (
+              <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', color: '#e11d48', padding: '14px 16px', borderRadius: '14px', fontSize: '13px', lineHeight: '1.6' }}>
+                <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>⚠️ كود الطالب ({studentCode}) غير مسجل بالنظام</div>
+                تعذّر العثور على طالب به القيمة الكودية هذه في مدرسة "{currentSchool.name}". يرجى التأكد من إدخال الكود الصحيح أو الضغط على أحد الأكواد المتاحة لهذه المدرسة أعلاه.
+              </div>
+            ) : student ? (
               <div className={`student-profile-box ${isCodeExpired || isSchoolMismatch ? 'expired-box' : ''}`}>
                 <div className="profile-header-title" style={{ color: isCodeExpired || isSchoolMismatch ? '#e11d48' : undefined }}>
                   بيانات الطالب {isSchoolMismatch ? '— (عدم تطابق المدرسة ⚠️)' : isCodeExpired ? '— (كود مستخدم ومنتهي الصلاحية ⚠️)' : ''}
@@ -372,11 +377,13 @@ export const StudentCheckoutStep: React.FC<StudentCheckoutStepProps> = ({
             onClick={handleInitiateMoyasar}
             style={{
               backgroundColor: canPay ? '#14b8a6' : '#e2e3e6',
-              color: canPay ? '#ffffff' : (isCodeExpired || isSchoolMismatch ? '#e11d48' : '#a8aab0'),
+              color: canPay ? '#ffffff' : (!student && studentCode.trim().length >= 4 ? '#e11d48' : isCodeExpired || isSchoolMismatch ? '#e11d48' : '#a8aab0'),
               cursor: canPay ? 'pointer' : 'not-allowed',
             }}
           >
-            {isSchoolMismatch
+            {!student && studentCode.trim().length >= 4
+              ? '⚠️ كود الطالب غير مسجل بالمدرسة'
+              : isSchoolMismatch
               ? '⚠️ كود الطالب غير متطابق مع المدرسة'
               : isCodeExpired
               ? '⚠️ كود الطالب مستخدم ومنتهي الصلاحية'
